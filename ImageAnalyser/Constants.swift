@@ -55,7 +55,7 @@ struct Constants {
     
     // Google request values
     struct GoogleRequestValues {
-        static let ApiKey = "AIzaSyD1pUc-CpUhSfijn4KI1Nqgy6clmDfSfc0"
+        static let ApiKey = "Add API KEY here"
         static let DataFormat = "json"
         static let BundleIdentifer = ""
         
