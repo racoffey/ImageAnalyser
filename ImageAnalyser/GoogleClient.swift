@@ -37,7 +37,7 @@ class GoogleClient : NSObject {
                     [
                         "type": "LABEL_DETECTION",
                         "maxResults": 10
-                    ],
+                    ]/*,
                     [
                         "type": "FACE_DETECTION",
                         "maxResults": 10
@@ -45,7 +45,7 @@ class GoogleClient : NSObject {
                     [
                         "type": "TEXT_DETECTION",
                         "maxResults": 10
-                    ]
+                    ]*/
                 ]
             ]
         ]
