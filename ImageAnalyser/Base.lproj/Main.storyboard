@@ -1,25 +1,134 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6211" systemVersion="14A298i" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11201" systemVersion="15G1004" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="hfu-Nf-LGm">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6204"/>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
+        <!--Navigation Controller-->
+        <scene sceneID="B9M-eN-gbN">
+            <objects>
+                <navigationController id="hfu-Nf-LGm" sceneMemberID="viewController">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="8Ap-Qo-OmY">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="BYZ-38-t0r" kind="relationship" relationship="rootViewController" id="VBK-Sa-M8N"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="hDf-pc-n2m" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-996" y="66"/>
+        </scene>
         <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="ViewController" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="ImageAnalyser" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
                         <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="008-66-kt2">
+                                <frame key="frameInset" minY="318" width="375" height="25"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="22"/>
+                                <state key="normal" title="Select image to analyse"/>
+                                <connections>
+                                    <action selector="selectImageButtonPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Ah8-e9-OWy"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="008-66-kt2" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="3dQ-59-zj9"/>
+                            <constraint firstItem="008-66-kt2" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="zcF-ce-VgI"/>
+                        </constraints>
                     </view>
+                    <navigationItem key="navigationItem" id="DsB-FC-GbH"/>
+                    <connections>
+                        <outlet property="selectImageButton" destination="008-66-kt2" id="wDo-oY-Hca"/>
+                        <segue destination="rug-xe-kUf" kind="show" identifier="segueToAnalysisSelectorView" id="kXF-Cy-kjE"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="32.799999999999997" y="66.11694152923539"/>
+        </scene>
+        <!--Analysis Selector View Controller-->
+        <scene sceneID="JbU-b5-Qy2">
+            <objects>
+                <viewController id="rug-xe-kUf" customClass="AnalysisSelectorViewController" customModule="ImageAnalyser" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="aoL-vr-CI2"/>
+                        <viewControllerLayoutGuide type="bottom" id="8Fb-Vk-7ab"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="Zlf-ao-jSU">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="UDa-Jy-mwq">
+                                <items>
+                                    <barButtonItem title="Analyse" id="G4T-eG-0Hp">
+                                        <connections>
+                                            <action selector="analyseButtonPressed:" destination="rug-xe-kUf" id="Snv-ja-85S"/>
+                                        </connections>
+                                    </barButtonItem>
+                                </items>
+                            </toolbar>
+                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="Gqt-4A-SiV">
+                                <frame key="frameInset" minY="64" width="375" height="21"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Image being analysed ..." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="10" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PoF-ZF-TQp">
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zdd-2u-uPw">
+                                <frame key="frameInset" minY="84" width="375" height="199"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="imq-hQ-VcB">
+                                <frame key="frameInset" minX="177" minY="365" width="20" height="20"/>
+                            </activityIndicatorView>
+                            <textView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" editable="NO" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cWP-kc-94B">
+                                <frame key="frameInset" minY="285" width="375" height="224"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                            </textView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="UDa-Jy-mwq" secondAttribute="trailing" id="2SB-uF-j7z"/>
+                            <constraint firstAttribute="trailing" secondItem="Gqt-4A-SiV" secondAttribute="trailing" id="JFh-dx-IhH"/>
+                            <constraint firstItem="imq-hQ-VcB" firstAttribute="centerX" secondItem="Zlf-ao-jSU" secondAttribute="centerX" id="KDj-5s-pic"/>
+                            <constraint firstItem="Gqt-4A-SiV" firstAttribute="top" secondItem="aoL-vr-CI2" secondAttribute="bottom" id="Lpe-3n-bpN"/>
+                            <constraint firstItem="UDa-Jy-mwq" firstAttribute="leading" secondItem="Zlf-ao-jSU" secondAttribute="leading" id="bLJ-I2-0wh"/>
+                            <constraint firstItem="8Fb-Vk-7ab" firstAttribute="top" secondItem="UDa-Jy-mwq" secondAttribute="bottom" id="fMP-Bx-jvk"/>
+                            <constraint firstItem="imq-hQ-VcB" firstAttribute="centerY" secondItem="Zlf-ao-jSU" secondAttribute="centerY" id="jpd-nr-7jf"/>
+                            <constraint firstItem="UDa-Jy-mwq" firstAttribute="top" secondItem="Gqt-4A-SiV" secondAttribute="bottom" id="mUk-dh-Ix8"/>
+                            <constraint firstItem="Gqt-4A-SiV" firstAttribute="leading" secondItem="Zlf-ao-jSU" secondAttribute="leading" id="yo9-sH-sWg"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="activityIndicator" destination="imq-hQ-VcB" id="pwc-FU-23d"/>
+                        <outlet property="analyseButton" destination="G4T-eG-0Hp" id="QO4-QY-xYi"/>
+                        <outlet property="imageView" destination="zdd-2u-uPw" id="jmF-x0-SIE"/>
+                        <outlet property="labelView" destination="PoF-ZF-TQp" id="eV0-33-YCR"/>
+                        <outlet property="textView" destination="cWP-kc-94B" id="xhf-cV-uCX"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="i7X-Xk-AzH" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="845.60000000000002" y="65.217391304347828"/>
         </scene>
     </scenes>
 </document>
