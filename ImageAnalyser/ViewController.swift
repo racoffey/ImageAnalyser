@@ -12,11 +12,15 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 
     var image : UIImage?
     
-    @IBOutlet weak var selectImageButton: UIButton!
+
+    @IBOutlet weak var selectCameraButton: UIBarButtonItem!
+    @IBOutlet weak var selectImageFolderButton: UIBarButtonItem!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        //Hide photo button if no camera source available
+        selectCameraButton.enabled = UIImagePickerController.isSourceTypeAvailable(UIImagePickerControllerSourceType.Camera)
 
 
         // Do any additional setup after loading the view, typically from a nib.
@@ -55,20 +59,19 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         print("Reached prepare for Segue")
         if segue.identifier == "segueToAnalysisSelectorView" {
             let destVC = segue.destinationViewController as! AnalysisSelectorViewController
-            destVC.image = image
+            destVC.image = image! as UIImage
             print("HEre is the image: \(destVC.image)")
         }
     }
 
     
-
-    @IBAction func selectImageButtonPressed(sender: AnyObject) {
-        selectImage(UIImagePickerControllerSourceType.PhotoLibrary)
+    @IBAction func selectImageFolderButton(sender: AnyObject) {
+                selectImage(UIImagePickerControllerSourceType.PhotoLibrary)
+    }
     
-
- /*       let viewController = self.storyboard?.instantiateViewControllerWithIdentifier("AnalysisSelectorVC") as! AnalysisSelectorViewController
-        viewController.image = image
-        presentViewController(viewController, animated: true, completion: nil)*/
+    
+    @IBAction func selectCameraButton(sender: AnyObject) {
+                        selectImage(UIImagePickerControllerSourceType.Camera)
     }
 
 }

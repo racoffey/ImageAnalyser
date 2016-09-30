@@ -19,50 +19,120 @@ class GoogleClient : NSObject {
     // Shared session
     var session = NSURLSession.sharedSession()
     
-    
-    func requestImageAnalysis(image: UIImage, completionHandlerForSession:(success: Bool, errorString: String?, response: AnyObject?) -> Void) {
-        
+
+    func requestImageAnalysis(image: UIImage, analysisType: String, completionHandlerForSession: (Bool, String?, AnyObject?) -> Void) {
+        let image : UIImage = image
+        print("Reached request image analaysis: \(image)")
         let imageData = base64EncodeImage(image)
+        //let imageData = image
+        var jsonBody : [String : AnyObject] = [:]
         var responses = [""]
         
         // Build our API request
         let method = ""
         let parameters : [String: AnyObject] = [Constants.GoogleRequestKeys.ApiKey : Constants.GoogleRequestValues.ApiKey as AnyObject]
-        let jsonBody = [
-            "requests": [
-                "image": [
-                    "content": imageData
-                ],
-                "features": [
-                    [
-                        "type": "LABEL_DETECTION",
-                        "maxResults": 10
-                    ]/*,
-                    [
-                        "type": "FACE_DETECTION",
-                        "maxResults": 10
+        
+        switch analysisType {
+        case "general":
+            jsonBody = [
+                "requests": [
+                    "image": [
+                        "content": imageData
                     ],
-                    [
-                        "type": "TEXT_DETECTION",
-                        "maxResults": 10
-                    ]*/
+                    "features": [
+                        [
+                            "type": "LABEL_DETECTION",
+                            "maxResults": 10
+                        ]
+                    ]
                 ]
             ]
-        ]
+        case "text":
+            jsonBody = [
+                "requests": [
+                    "image": [
+                        "content": imageData
+                    ],
+                    "features": [
+                        /*[
+                            "type": "LABEL_DETECTION",
+                            "maxResults": 10
+                        ],
+                         [
+                         "type": "FACE_DETECTION",
+                         "maxResults": 10
+                         ],*/
+                         [
+                         "type": "TEXT_DETECTION",
+                         "maxResults": 0
+                         ]
+                    ]
+                ]
+            ]
+            
+        case "landmark":
+            jsonBody = [
+                "requests": [
+                    "image": [
+                        "content": imageData
+                    ],
+                    "features": [
+                        /*[
+                         "type": "LABEL_DETECTION",
+                         "maxResults": 10
+                         ],
+                         [
+                         "type": "FACE_DETECTION",
+                         "maxResults": 10
+                         ],*/
+                        [
+                            "type": "LANDMARK_DETECTION",
+                            "maxResults": 10
+                        ]
+                    ]
+                ]
+            ]
+            
+        case "face":
+            jsonBody = [
+                "requests": [
+                    "image": [
+                        "content": imageData
+                    ],
+                    "features": [
+                        /*[
+                         "type": "LABEL_DETECTION",
+                         "maxResults": 10
+                         ],*/
+                         [
+                         "type": "FACE_DETECTION",
+                         "maxResults": 10
+                         ] /*,
+                        [
+                            "type": "LANDMARK_DETECTION",
+                            "maxResults": 10
+                        ]*/
+                    ]
+                ]
+            ]
+            
+        default: break
+        }
 
-        taskForPOSTMethod(method, parameters: parameters, jsonBody: jsonBody as [String : AnyObject]) { (results, error) in
+
+        taskForPOSTMethod(method, parameters: parameters, jsonBody: jsonBody as [String : AnyObject], type: "vision") { (results, error) in
             
             // Handle error case
             if error != nil {
-                completionHandlerForSession(success: false, errorString: "Failed to get photos. \(error)", response: "")
+                completionHandlerForSession(false, "Failed to get result data. \(error)", "")
             } else {
                 //Put results into a data object, extract result information into Annotations object which is returned
 
                 let resultsDict = results as! [String : AnyObject]
                 print("ResultsDict: \(resultsDict)")
-                let responses = resultsDict["responses"]
+                let responses = resultsDict["responses"] as! [AnyObject]
                 print("Responses: \(responses)")
-                let annotations = responses![0]
+                let annotations = responses[0]
                 print("Annotations : \(annotations)")
 
             
@@ -125,11 +195,181 @@ class GoogleClient : NSObject {
                 // Save changes to Core Data
                 //CoreDataStackManager.sharedInstance().save()
  */
+                print("About to request translation")
                 // Successfully complete session
-                completionHandlerForSession(success: true, errorString: nil, response: annotations)
+                      self.requestTranslation("Gamle breve ledte Katrine Koust på sporet af sin biologiske mor i Sri Lanka. Hun endte med at få en helt ny familie, som hun knuselskede fra første øjeblik.", language: "dk") { (success, errorString, response) in
+                    if success {
+                        print(response!)
+                    } else {
+                        print(errorString!)
+                    }
+                 }
+
+                
+                completionHandlerForSession(true, nil, annotations)
             }
         }
             
+    }
+    
+    func requestTranslation(text: String, language: String, completionHandlerForSession: (Bool, String?, AnyObject?) -> Void) {
+        print("Reached request translation")
+        //let imageData = base64EncodeImage(image)
+        var jsonBody : [String : AnyObject] = [:]
+        let target = "en"
+        var responses = [""]
+        
+        // Build our API request
+        let method = ""
+        let parameters : [String: AnyObject] = [Constants.GoogleRequestKeys.ApiKey : (Constants.GoogleRequestValues.ApiKey as AnyObject),       Constants.GoogleRequestKeys.Source : language,
+            Constants.GoogleRequestKeys.Target : target,
+            Constants.GoogleRequestKeys.Text : text]
+        
+ /*
+        switch analysisType {
+        case "general":
+            jsonBody = [
+                "requests": [
+                    "image": [
+                        "content": imageData
+                    ],
+                    "features": [
+                        [
+                            "type": "LABEL_DETECTION",
+                            "maxResults": 10
+                        ]
+                    ]
+                ]
+            ]
+        case "text":
+            jsonBody = [
+                "requests": [
+                    "image": [
+                        "content": imageData
+                    ],
+                    "features": [
+                        /*[
+                         "type": "LABEL_DETECTION",
+                         "maxResults": 10
+                         ],
+                         [
+                         "type": "FACE_DETECTION",
+                         "maxResults": 10
+                         ],*/
+                        [
+                            "type": "TEXT_DETECTION",
+                            "maxResults": 0
+                        ]
+                    ]
+                ]
+            ]
+            
+        case "landmark":
+            jsonBody = [
+                "requests": [
+                    "image": [
+                        "content": imageData
+                    ],
+                    "features": [
+                        /*[
+                         "type": "LABEL_DETECTION",
+                         "maxResults": 10
+                         ],
+                         [
+                         "type": "FACE_DETECTION",
+                         "maxResults": 10
+                         ],*/
+                        [
+                            "type": "LANDMARK_DETECTION",
+                            "maxResults": 10
+                        ]
+                    ]
+                ]
+            ]
+            
+        default: break
+        }
+        */
+        
+        taskForPOSTMethod(method, parameters: parameters, jsonBody: jsonBody as [String : AnyObject], type: "translate") { (results, error) in
+            
+            // Handle error case
+            if error != nil {
+                completionHandlerForSession(false, "Failed to get result data. \(error)", "")
+            } else {
+                //Put results into a data object, extract result information into Annotations object which is returned
+                
+                let resultsDict = results as! [String : AnyObject]
+                print("ResultsDict: \(resultsDict)")
+         /*       let responses = resultsDict["responses"] as! [AnyObject]
+                print("Responses: \(responses)")
+                let annotations = responses[0]
+                print("Annotations : \(annotations)")*/
+                
+                
+                
+                /*  self.convertStringWithCompletionHandler(responses) { (results, error) in
+                 
+                 print("Results = \(results)")
+                 //let string : [String : String] = results![0] as? [String : AnyObject]
+                 //let labelAnnotations  = string["labelAnnotations"] as! [String]
+                 }*/
+                //print(labelAnnotations[0]["description"])
+                
+                
+                //self.parseText(string as! String)
+                
+                
+                
+                //    let dict = resultsDict["responses"]?.covertToJson([String : AnyObject])
+                //let textToParse = (array![0]).covertToJson([String : AnyObject])
+                //let res = NSString.stringEncodingForData(results, encodingOptions: [String : AnyObject]?, convertedString: AutoreleasingUnsafeMutablePointer<NSString?>, usedLossyConversion: UnsafeMutablePointer<ObjCBool>)
+                
+                //self.parseText(textToParse)
+                
+                //               let responses = resultsDict["responses"] as! [String]
+                /*                guard let responses = resultsDict["responses"] as! [NSData]{
+                 let labelNotation = NSJSONSerialization.dataWithJSONObject(responses, options: .AllowFragments)
+                 }
+                 */
+                //        let responses = resultsDict["responses"] as! [String : AnyObject]
+                //let responsesJSON = self.convertDataWithCompletionHandler(responses, completionHandlerForConvertData: completionHandlerForSession)
+                //let labelAnnotations = responses["labelAnnotation"] as! [String : AnyObject]
+                //               print(responses)
+                
+                /*
+                 let photoResults = resultsDict["photos"] as! [String: AnyObject]
+                 let photosArray = photoResults["photo"] as! [AnyObject]
+                 if photosArray.endIndex == 0 {
+                 completionHandlerForSession(success: false, errorString: "No photos are available for this location!")
+                 }
+                 
+                 // Create Core Data Photo object for each photo in array in memory
+                 for item in photosArray {
+                 let dict = item as! [String: AnyObject]
+                 
+                 let photo = Photo(title: dict["title"] as! String, url_m: dict["url_m"] as! String, context: context)
+                 
+                 // Define parent Pin in Photo object
+                 photo.pin = pin
+                 
+                 // Download images on background thread and update Core Data Photo object when downloaded
+                 performUIUpdatesOnBackground({
+                 if let url  = NSURL(string: photo.url_m!),
+                 data = NSData(contentsOfURL: url)
+                 {
+                 photo.image = data
+                 }
+                 })
+                 }
+                 
+                 // Save changes to Core Data
+                 //CoreDataStackManager.sharedInstance().save()
+                 */
+                // Successfully complete session
+                completionHandlerForSession(true, nil, resultsDict)
+            }        }
+        
     }
   /*
     func parseText( text : String) {
@@ -241,12 +481,22 @@ class GoogleClient : NSObject {
 */
     
     // POST method
-    func taskForPOSTMethod(method: String, parameters: [String:AnyObject], jsonBody: [String: AnyObject], completionHandlerForPOST: (result: AnyObject?, error: NSError?) -> Void) -> NSURLSessionDataTask {
+    func taskForPOSTMethod(method: String, parameters: [String:AnyObject], jsonBody: [String: AnyObject], type: String, completionHandlerForPOST: (AnyObject?, NSError?) -> Void) -> NSURLSessionDataTask {
         
         
         // Build the URL based on header parameter and json body input
         var parameters = parameters
-        let request = NSMutableURLRequest(URL: parseURLFromParameters(parameters, withPathExtension: method) as NSURL)
+        var request = NSMutableURLRequest()
+        
+        switch type {
+        case "translate":
+            request = NSMutableURLRequest(URL: parseTranslateURLFromParameters(parameters, withPathExtension: method) as NSURL)
+        case "vision":
+            request = NSMutableURLRequest(URL: parseURLFromParameters(parameters, withPathExtension: method) as NSURL)
+        default:
+            break
+        }
+
         request.HTTPMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue(NSBundle.mainBundle().bundleIdentifier ?? "",forHTTPHeaderField: "X-Ios-Bundle-Identifier")
@@ -259,7 +509,7 @@ class GoogleClient : NSObject {
             
             func sendError(error: String) {
                 let userInfo = [NSLocalizedDescriptionKey : error]
-                completionHandlerForPOST(result: nil, error: NSError(domain: "taskForPOSTMethod", code: 1, userInfo: userInfo))
+                completionHandlerForPOST(nil, NSError(domain: "taskForPOSTMethod", code: 1, userInfo: userInfo))
             }
             
             // GUARD: Was there an error?
@@ -269,7 +519,7 @@ class GoogleClient : NSObject {
             }
             
             // GUARD: Did we get a successful 2XX response?
-            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode  where statusCode >= 200 && statusCode <= 299 else {
+            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode   where statusCode >= 200 && statusCode <= 299 else {
                 sendError("Your POST request returned a status code other than 2xx!")
                 return
             }
@@ -384,9 +634,24 @@ class GoogleClient : NSObject {
         return components.URL! as NSURL
     }
     
+    func parseTranslateURLFromParameters(parameters: [String:AnyObject], withPathExtension: String? = nil) -> NSURL {
+        
+        let components = NSURLComponents()
+        components.scheme = Constants.Google.ApiScheme
+        components.host = Constants.Google.ApiHostTranslate
+        components.path = Constants.Google.ApiPathTranlate + (withPathExtension ?? "")
+        components.queryItems = [NSURLQueryItem]() as [NSURLQueryItem]?
+        
+        for (key, value) in parameters {
+            let queryItem = NSURLQueryItem(name: key, value: "\(value)")
+            components.queryItems!.append(queryItem as NSURLQueryItem)
+        }
+        return components.URL! as NSURL
+    }
+    
     
     // Parse raw JSON to NS object
-    private func convertDataWithCompletionHandler(data: NSData, completionHandlerForConvertData: (result: AnyObject?, error: NSError?) -> Void) {
+    private func convertDataWithCompletionHandler(data: NSData, completionHandlerForConvertData: (AnyObject?, NSError?) -> Void) {
         
         var parsedResult: AnyObject?
         
@@ -395,14 +660,14 @@ class GoogleClient : NSObject {
             parsedResult = try NSJSONSerialization.JSONObjectWithData(data as NSData, options: .MutableContainers)
         } catch {
             let userInfo = [NSLocalizedDescriptionKey : "Could not parse the data as JSON"]
-            completionHandlerForConvertData(result: nil, error: NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
+            completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
         }
         // Return parsed result
-        completionHandlerForConvertData(result: parsedResult, error: nil)
+        completionHandlerForConvertData(parsedResult, nil)
     }
     
     // Parse raw JSON to NS object
-    private func convertStringWithCompletionHandler(json: String, completionHandlerForConvertData: (result: AnyObject?, error: NSError?) -> Void) {
+    private func convertStringWithCompletionHandler(json: String, completionHandlerForConvertData: (AnyObject?, NSError?) -> Void) {
 
         var parsedResult: AnyObject?
         
@@ -412,13 +677,13 @@ class GoogleClient : NSObject {
                 parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .MutableContainers)
             } catch {
                 let userInfo = [NSLocalizedDescriptionKey : "Could not parse the data as JSON"]
-                completionHandlerForConvertData(result: nil, error: NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
+                completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
             }
             // Return parsed result
-            completionHandlerForConvertData(result: parsedResult, error: nil)
+            completionHandlerForConvertData(parsedResult, nil)
         }
         let userInfo = [NSLocalizedDescriptionKey : "Could not encode string to data."]
-        completionHandlerForConvertData(result: nil, error: NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
+        completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
     }
 
     
@@ -433,7 +698,9 @@ class GoogleClient : NSObject {
     }
     
     func base64EncodeImage(image: UIImage) -> String {
+        print("Image = \(image)")
         var imagedata = UIImagePNGRepresentation(image)
+        //var imagedata = UIImageJPEGRepresentation(image, 1)
         
         // Resize the image if it exceeds the 2MB API limit
         if (imagedata!.length > 2097152) {

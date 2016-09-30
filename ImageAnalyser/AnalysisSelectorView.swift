@@ -8,29 +8,37 @@
 
 import Foundation
 import UIKit
+import MapKit
 
-class AnalysisSelectorViewController: UIViewController {
+class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate {
     
     var image: UIImage?
 
     @IBOutlet weak var imageView: UIImageView!
-    @IBOutlet weak var analyseButton: UIBarButtonItem!
-    @IBOutlet weak var labelView: UILabel!
+    @IBOutlet weak var generalButton: UIBarButtonItem!
+    @IBOutlet weak var textButton: UIBarButtonItem!
+    @IBOutlet weak var landmarkButton: UIBarButtonItem!
+    @IBOutlet weak var faceButton: UIBarButtonItem!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var textView: UITextView!
+    @IBOutlet weak var mapView: MKMapView!
+
 
     override func viewWillAppear(animated: Bool) {
-        print("Image in Analysis View Controller is : \(image)")
+        print("Image in Analysis View Controller is : \(image!)")
         imageView.contentMode = UIViewContentMode.ScaleAspectFit
         imageView.image = image
         activityIndicator.hidden = true
         activityIndicator.hidesWhenStopped = true
-        self.labelView.hidden = true
+        textView.hidden = false
+        mapView.hidden = true
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        self.mapView.delegate = self
+
 
     }
 
@@ -48,25 +56,132 @@ class AnalysisSelectorViewController: UIViewController {
         var labelText : String = ""
         var count = 0
         var number = 0
+        var location = CLLocationCoordinate2D?()
+        var landmark = false
+        
         //let response = annotations as! [String : String]
         print("Reponse in displayResponse : \(response)")
-        let labelAnnotations = response["labelAnnotations"]!
-        print("LabelAnnotations in displayResponse : \(labelAnnotations)")
-        print("Number of items in labelAnnotations = \(labelAnnotations!.count)")
-        if labelAnnotations!.count != 0 {
-            count  = 0
-            number = labelAnnotations!.count
-            print("Number : \(number)")
-            print(labelAnnotations)
-            labelText = "IMAGE LABELS: "
-            while count < number {
-                let dict = labelAnnotations![count]
-                let str = dict["description"]!
-                labelText.appendContentsOf(" \(str!)")
-                count += 1
+        
+        if (response["labelAnnotations"]!) != nil {
+            let labelAnnotations = response["labelAnnotations"] as! [AnyObject]
+            print("LabelAnnotations in displayResponse : \(labelAnnotations)")
+            print("Number of items in labelAnnotations = \(labelAnnotations.count)")
+            if labelAnnotations.count != 0 {
+                count  = 0
+                number = labelAnnotations.count
+                print("Number : \(number)")
+                print(labelAnnotations)
+                labelText = "IMAGE LABELS: "
+                while count < number {
+                    let dict = labelAnnotations[count]
+                    let str = dict["description"]!
+                    labelText.appendContentsOf(" \(str!)")
+                    count += 1
+                }
             }
+            print(labelText)
+        } else {
+            print("Response contains no lable annotations")
         }
-        print(labelText)
+        
+        if (response["textAnnotations"]!) != nil {
+            let textAnnotations = response["textAnnotations"] as! [AnyObject]
+            print("TextAnnotations in displayResponse : \(textAnnotations)")
+            print("Number of items in textAnnotations = \(textAnnotations.count)")
+        
+            labelText = "IMAGE TEXT: "
+            let dict = textAnnotations[count]
+            let str = dict["description"]!
+            labelText.appendContentsOf(" \(str!)")
+            
+            print(labelText)
+        } else {
+            print("No text annotations in response")
+        }
+        
+        if (response["landmarkAnnotations"]!) != nil {
+            let landmarkAnnotations = response["landmarkAnnotations"] as! [AnyObject]
+            print("LandmarkAnnotations in displayResponse : \(landmarkAnnotations)")
+            
+            //labelText = "LANDMARK: "
+            let dict = landmarkAnnotations[count]
+            let str = dict["description"]!
+            labelText.appendContentsOf(" \(str!)")
+            print(labelText)
+            
+            let locations = dict["locations"] as! [AnyObject]
+            print("Locations = \(locations)")
+            let latLng = locations[0]
+            print("Latlng = \(latLng)")
+            let coordinates = latLng["latLng"]!
+            print("Coordinates = \(coordinates)")
+            let latitude = coordinates!["latitude"] as! Double
+            let longitude = coordinates!["longitude"] as! Double
+            print("latitude = \(latitude)")
+            print("longitude = \(longitude)")
+            location = CLLocationCoordinate2DMake(latitude, longitude)
+            landmark = true
+            
+        } else {
+            print("No landmark annotations in response")
+        }
+        
+        if (response["faceAnnotations"]!) != nil {
+            let faceAnnotations = response["faceAnnotations"] as! [AnyObject]
+            print("FaceAnnotations in displayResponse : \(faceAnnotations)")
+            
+            //labelText = "LANDMARK: "
+            let dict = faceAnnotations[count]
+            let angerLikelihood = dict["angerLikelihood"]!
+            labelText.appendContentsOf(" \n Angerlikelihood: \(angerLikelihood!)")
+            let joyLikelihood = dict["joyLikelihood"]!
+            labelText.appendContentsOf(" \n Joylikelihood: \(joyLikelihood!)")
+            let sorrowLikelihood = dict["sorrowLikelihood"]!
+            labelText.appendContentsOf(" \n Sorrowlikelihood: \(sorrowLikelihood!)")
+            let surpriseLikelihood = dict["surpriseLikelihood"]!
+            labelText.appendContentsOf(" \n Surpriselikelihood: \(surpriseLikelihood!)")
+            print(labelText)
+            
+/*            let angerLikelihood = dict["angerLikelihood"] as! [AnyObject]
+            print("AngerLikelihood = \(angerLikelihood)")
+            let joyLikelihood = dict["joyLikelihood"] as! [AnyObject]
+            print("AngerLikelihood = \(joyLikelihood)")*/
+            /*let latLng = locations[0]
+            print("Latlng = \(latLng)")
+            let coordinates = latLng["latLng"]!
+            print("Coordinates = \(coordinates)")
+            let latitude = coordinates!["latitude"] as! Double
+            let longitude = coordinates!["longitude"] as! Double
+            print("latitude = \(latitude)")
+            print("longitude = \(longitude)")
+            location = CLLocationCoordinate2DMake(latitude, longitude)
+            landmark = true*/
+            
+        } else {
+            print("No face annotations in response")
+        }
+
+/*
+        if response["textAnnotations"] != nil {
+            let textAnnotations = response["textAnnotations"] as! [AnyObject]
+            print("TextAnnotations in displayResponse : \(textAnnotations)")
+            print("Number of items in labelAnnotations = \(textAnnotations.count)")
+            if textAnnotations.count != 0 {
+                count  = 0
+                number = textAnnotations.count
+                print("Number : \(number)")
+                print(labelAnnotations)
+                labelText = "/n TEXT IN IMAGE: "
+                while count < number {
+                    let dict = textAnnotations[count]
+                    let str = dict["description"]!
+                    labelText.appendContentsOf(" \(str!)")
+                    count += 1
+                }
+            }
+        } else {
+            print("No text in image")
+        }*/
 /*
         let faceAnnotations = response["faceAnnotations"]!
         print("FaceAnnotations in DR : \(faceAnnotations)")
@@ -89,26 +204,108 @@ class AnalysisSelectorViewController: UIViewController {
         //print(labelAnnotations!![0]["description"])
         //labelText = labelAnnotations!![0]["description"] as! String
         
-        performUIUpdatesOnMain ({
-            self.labelView.hidden = true
-            self.textView.text = labelText
-            self.textView.reloadInputViews()
-        })
+        if landmark {
+            let dropPin = MKPointAnnotation()
+            dropPin.coordinate = location!
+            dropPin.title = labelText
+            performUIUpdatesOnMain ({
+                self.textView.hidden = true
+                self.mapView.hidden = false
+                self.mapView.setCenterCoordinate(location!, animated: true)
+                self.mapView.addAnnotation(dropPin)
+                self.mapView.selectAnnotation(dropPin, animated: true)
+            })
+        } else {
+            performUIUpdatesOnMain ({
+                self.activityIndicator.stopAnimating()
+                self.textView.hidden = false
+                self.textView.text = labelText
+                self.textView.reloadInputViews()
+            })
+        }
+    }
+    
+    func mapViewDidFinishRenderingMap(mapView: MKMapView, fullyRendered: Bool){
+        activityIndicator.stopAnimating()
+
     }
 
-    @IBAction func analyseButtonPressed(sender: AnyObject) {
+    @IBAction func generalButtonPressed(sender: AnyObject) {
         print("Reached Button Pressed")
-        activityIndicator.startAnimating()
-        self.labelView.hidden = false
-        GoogleClient.sharedInstance().requestImageAnalysis(self.image!) { (success, errorString, response) in
+        performUIUpdatesOnMain ({
+            self.activityIndicator.hidden = false
+            self.activityIndicator.startAnimating()
+            self.textView.hidden = false
+            self.textView.text = "Image being analysed..."
+            self.textView.reloadInputViews()
+        })
+
+        GoogleClient.sharedInstance().requestImageAnalysis(self.image!, analysisType: "general") { (success, errorString, response) in
             if success {
                 self.displayResponse(response!)
             } else {
                 self.displayError(errorString!)
             }
         }
-        activityIndicator.stopAnimating()
     }
- 
+    
+    @IBAction func textButtonPressed(sender: AnyObject) {
+        print("Text Button Pressed")
+        performUIUpdatesOnMain ({
+            self.activityIndicator.hidden = false
+            self.activityIndicator.startAnimating()
+            self.textView.hidden = false
+            self.textView.text = "Image being analysed..."
+            self.textView.reloadInputViews()
+        })
+        
+        GoogleClient.sharedInstance().requestImageAnalysis(self.image!, analysisType: "text") { (success, errorString, response) in
+            if success {
+                self.displayResponse(response!)
+            } else {
+                self.displayError(errorString!)
+            }
+        }
+    }
+    
+    @IBAction func landmarkButtonPressed(sender: AnyObject) {
+        print("Landmark Button Pressed")
+        performUIUpdatesOnMain ({
+            self.activityIndicator.hidden = false
+            self.activityIndicator.startAnimating()
+            self.textView.hidden = false
+            self.textView.text = "Image being analysed..."
+            self.textView.reloadInputViews()
+        })
+        print("Image in landmark Button pressed: \(self.image!)")
+        GoogleClient.sharedInstance().requestImageAnalysis(self.image!, analysisType: "landmark") { (success, errorString, response) in
+            if success {
+                self.displayResponse(response!)
+            } else {
+                self.displayError(errorString!)
+            }
+        }
+    }
+    
+    
+    @IBAction func faceButtonPressed(sender: AnyObject) {
+        print("Face Button Pressed")
+        performUIUpdatesOnMain ({
+            self.activityIndicator.hidden = false
+            self.activityIndicator.startAnimating()
+            self.textView.hidden = false
+            self.textView.text = "Image being analysed..."
+            self.textView.reloadInputViews()
+        })
+        print("Image in face Button pressed: \(self.image!)")
+        GoogleClient.sharedInstance().requestImageAnalysis(self.image!, analysisType: "face") { (success, errorString, response) in
+            if success {
+                self.displayResponse(response!)
+            } else {
+                self.displayError(errorString!)
+            }
+        }
+    }
+    
 }
- 
+

@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11201" systemVersion="15G1004" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="hfu-Nf-LGm">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11201" systemVersion="16A323" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="hfu-Nf-LGm">
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
@@ -34,24 +34,40 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="008-66-kt2">
-                                <frame key="frameInset" minY="318" width="375" height="25"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="22"/>
-                                <state key="normal" title="Select image to analyse"/>
-                                <connections>
-                                    <action selector="selectImageButtonPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Ah8-e9-OWy"/>
-                                </connections>
-                            </button>
+                            <toolbar clearsContextBeforeDrawing="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="l7m-gT-zCv">
+                                <frame key="frameInset" height="44"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <items>
+                                    <barButtonItem systemItem="bookmarks" id="d5F-D5-OSd">
+                                        <connections>
+                                            <action selector="selectImageFolderButton:" destination="BYZ-38-t0r" id="nVz-9P-rdo"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="aWh-sI-Si4"/>
+                                    <barButtonItem systemItem="camera" id="DMj-27-Amb">
+                                        <connections>
+                                            <action selector="selectCameraButton:" destination="BYZ-38-t0r" id="Z4s-Ac-UuV"/>
+                                        </connections>
+                                    </barButtonItem>
+                                </items>
+                            </toolbar>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Select an image to analyse" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tq4-lP-2S4">
+                                <fontDescription key="fontDescription" type="system" pointSize="21"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="008-66-kt2" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="3dQ-59-zj9"/>
-                            <constraint firstItem="008-66-kt2" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="zcF-ce-VgI"/>
+                            <constraint firstItem="tq4-lP-2S4" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="NqH-Y7-LlA"/>
+                            <constraint firstItem="tq4-lP-2S4" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Q2x-12-i6I"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="DsB-FC-GbH"/>
                     <connections>
-                        <outlet property="selectImageButton" destination="008-66-kt2" id="wDo-oY-Hca"/>
+                        <outlet property="selectCameraButton" destination="DMj-27-Amb" id="z8J-c7-CQx"/>
+                        <outlet property="selectImageFolderButton" destination="d5F-D5-OSd" id="3hf-Kh-NMA"/>
                         <segue destination="rug-xe-kUf" kind="show" identifier="segueToAnalysisSelectorView" id="kXF-Cy-kjE"/>
                     </connections>
                 </viewController>
@@ -71,59 +87,90 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="UDa-Jy-mwq">
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="Gqt-4A-SiV">
+                                <subviews>
+                                    <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="Select analysis type" textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="PIf-LK-fdu">
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="250" id="msz-i6-QMs"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                    </textView>
+                                    <mapView hidden="YES" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="33C-Gf-Jb3">
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="250" id="q40-oB-xii"/>
+                                        </constraints>
+                                    </mapView>
+                                    <imageView opaque="NO" userInteractionEnabled="NO" contentMode="top" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="zdd-2u-uPw"/>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="zdd-2u-uPw" firstAttribute="top" secondItem="PIf-LK-fdu" secondAttribute="bottom" id="2OU-MW-04D"/>
+                                    <constraint firstAttribute="trailing" secondItem="PIf-LK-fdu" secondAttribute="trailing" id="4dd-2s-sGC"/>
+                                    <constraint firstAttribute="trailing" secondItem="zdd-2u-uPw" secondAttribute="trailing" id="Bro-Dg-hdl"/>
+                                    <constraint firstItem="33C-Gf-Jb3" firstAttribute="leading" secondItem="Gqt-4A-SiV" secondAttribute="leading" id="Nkz-3Q-UbA"/>
+                                    <constraint firstItem="PIf-LK-fdu" firstAttribute="leading" secondItem="Gqt-4A-SiV" secondAttribute="leading" id="PBZ-fB-MOQ"/>
+                                    <constraint firstItem="zdd-2u-uPw" firstAttribute="leading" secondItem="Gqt-4A-SiV" secondAttribute="leading" id="cuw-bJ-Gkb"/>
+                                    <constraint firstItem="PIf-LK-fdu" firstAttribute="top" secondItem="Gqt-4A-SiV" secondAttribute="top" id="kJc-OI-RUI"/>
+                                    <constraint firstAttribute="trailing" secondItem="33C-Gf-Jb3" secondAttribute="trailing" id="x2a-Ni-CXH"/>
+                                </constraints>
+                            </stackView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="imq-hQ-VcB">
+                                <frame key="frameInset" minY="333" width="375" height="20"/>
+                            </activityIndicatorView>
+                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="UDa-Jy-mwq">
+                                <frame key="frameInset" minY="479" width="375" height="44"/>
                                 <items>
-                                    <barButtonItem title="Analyse" id="G4T-eG-0Hp">
+                                    <barButtonItem title="General" id="G4T-eG-0Hp">
                                         <connections>
-                                            <action selector="analyseButtonPressed:" destination="rug-xe-kUf" id="Snv-ja-85S"/>
+                                            <action selector="generalButtonPressed:" destination="rug-xe-kUf" id="Mz4-PN-iqk"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="MpM-Oo-zpg"/>
+                                    <barButtonItem title="Face" id="b8L-8h-wM4">
+                                        <connections>
+                                            <action selector="faceButtonPressed:" destination="rug-xe-kUf" id="jMe-aJ-sFy"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="XXa-b2-tdz"/>
+                                    <barButtonItem title="Landmark" id="UG6-5Q-YmR">
+                                        <connections>
+                                            <action selector="landmarkButtonPressed:" destination="rug-xe-kUf" id="niA-qg-jVZ"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="zX7-hh-tGa"/>
+                                    <barButtonItem title="Text" id="uOC-Hq-ThH">
+                                        <connections>
+                                            <action selector="textButtonPressed:" destination="rug-xe-kUf" id="Qtr-cL-CmS"/>
                                         </connections>
                                     </barButtonItem>
                                 </items>
                             </toolbar>
-                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="Gqt-4A-SiV">
-                                <frame key="frameInset" minY="64" width="375" height="21"/>
-                                <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Image being analysed ..." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="10" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PoF-ZF-TQp">
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                        <nil key="textColor"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                </subviews>
-                            </stackView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zdd-2u-uPw">
-                                <frame key="frameInset" minY="84" width="375" height="199"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                            </imageView>
-                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="imq-hQ-VcB">
-                                <frame key="frameInset" minX="177" minY="365" width="20" height="20"/>
-                            </activityIndicatorView>
-                            <textView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" editable="NO" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cWP-kc-94B">
-                                <frame key="frameInset" minY="285" width="375" height="224"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                            </textView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="trailing" secondItem="UDa-Jy-mwq" secondAttribute="trailing" id="2SB-uF-j7z"/>
+                            <constraint firstItem="imq-hQ-VcB" firstAttribute="top" secondItem="aoL-vr-CI2" secondAttribute="bottom" constant="120" id="ItF-6M-5Ry"/>
                             <constraint firstAttribute="trailing" secondItem="Gqt-4A-SiV" secondAttribute="trailing" id="JFh-dx-IhH"/>
-                            <constraint firstItem="imq-hQ-VcB" firstAttribute="centerX" secondItem="Zlf-ao-jSU" secondAttribute="centerX" id="KDj-5s-pic"/>
                             <constraint firstItem="Gqt-4A-SiV" firstAttribute="top" secondItem="aoL-vr-CI2" secondAttribute="bottom" id="Lpe-3n-bpN"/>
+                            <constraint firstItem="zdd-2u-uPw" firstAttribute="top" secondItem="aoL-vr-CI2" secondAttribute="bottom" constant="250" id="PlD-de-m8N"/>
                             <constraint firstItem="UDa-Jy-mwq" firstAttribute="leading" secondItem="Zlf-ao-jSU" secondAttribute="leading" id="bLJ-I2-0wh"/>
+                            <constraint firstItem="imq-hQ-VcB" firstAttribute="leading" secondItem="Zlf-ao-jSU" secondAttribute="leading" id="bZT-Vd-fhc"/>
+                            <constraint firstAttribute="trailing" secondItem="imq-hQ-VcB" secondAttribute="trailing" id="cth-Ew-jCS"/>
                             <constraint firstItem="8Fb-Vk-7ab" firstAttribute="top" secondItem="UDa-Jy-mwq" secondAttribute="bottom" id="fMP-Bx-jvk"/>
-                            <constraint firstItem="imq-hQ-VcB" firstAttribute="centerY" secondItem="Zlf-ao-jSU" secondAttribute="centerY" id="jpd-nr-7jf"/>
                             <constraint firstItem="UDa-Jy-mwq" firstAttribute="top" secondItem="Gqt-4A-SiV" secondAttribute="bottom" id="mUk-dh-Ix8"/>
                             <constraint firstItem="Gqt-4A-SiV" firstAttribute="leading" secondItem="Zlf-ao-jSU" secondAttribute="leading" id="yo9-sH-sWg"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="activityIndicator" destination="imq-hQ-VcB" id="pwc-FU-23d"/>
-                        <outlet property="analyseButton" destination="G4T-eG-0Hp" id="QO4-QY-xYi"/>
+                        <outlet property="faceButton" destination="b8L-8h-wM4" id="LYx-HO-kyy"/>
+                        <outlet property="generalButton" destination="G4T-eG-0Hp" id="etX-Wg-yPh"/>
                         <outlet property="imageView" destination="zdd-2u-uPw" id="jmF-x0-SIE"/>
-                        <outlet property="labelView" destination="PoF-ZF-TQp" id="eV0-33-YCR"/>
-                        <outlet property="textView" destination="cWP-kc-94B" id="xhf-cV-uCX"/>
+                        <outlet property="landmarkButton" destination="UG6-5Q-YmR" id="vX1-ZL-KU8"/>
+                        <outlet property="mapView" destination="33C-Gf-Jb3" id="wea-dC-RSQ"/>
+                        <outlet property="textButton" destination="uOC-Hq-ThH" id="EH9-6F-XIR"/>
+                        <outlet property="textView" destination="PIf-LK-fdu" id="3HO-Kd-7m3"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="i7X-Xk-AzH" userLabel="First Responder" sceneMemberID="firstResponder"/>
