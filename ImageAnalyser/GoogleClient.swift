@@ -100,10 +100,10 @@ class GoogleClient : NSObject {
                         "content": imageData
                     ],
                     "features": [
-                        /*[
+                        [
                          "type": "LABEL_DETECTION",
                          "maxResults": 10
-                         ],*/
+                         ],
                          [
                          "type": "FACE_DETECTION",
                          "maxResults": 10

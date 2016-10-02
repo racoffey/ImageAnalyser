@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 import MapKit
 
-class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate {
+class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegate {
     
     var image: UIImage?
 
@@ -71,11 +71,18 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate {
                 number = labelAnnotations.count
                 print("Number : \(number)")
                 print(labelAnnotations)
-                labelText = "IMAGE LABELS: "
+                labelText = "IMAGE LABELS:\n"
                 while count < number {
+                    print("Count : \(count)")
+                    print("Label text : \(labelText)")
                     let dict = labelAnnotations[count]
                     let str = dict["description"]!
-                    labelText.appendContentsOf(" \(str!)")
+                    
+                    if count == number-1 {
+                        labelText.appendContentsOf("\(str!).")
+                    } else {
+                        labelText.appendContentsOf("\(str!), ")
+                    }
                     count += 1
                 }
             }
@@ -89,7 +96,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate {
             print("TextAnnotations in displayResponse : \(textAnnotations)")
             print("Number of items in textAnnotations = \(textAnnotations.count)")
         
-            labelText = "IMAGE TEXT: "
+            labelText = "IMAGE TEXT:\n"
             let dict = textAnnotations[count]
             let str = dict["description"]!
             labelText.appendContentsOf(" \(str!)")
@@ -131,15 +138,15 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate {
             print("FaceAnnotations in displayResponse : \(faceAnnotations)")
             
             //labelText = "LANDMARK: "
-            let dict = faceAnnotations[count]
+            let dict = faceAnnotations[0]
             let angerLikelihood = dict["angerLikelihood"]!
-            labelText.appendContentsOf(" \n Angerlikelihood: \(angerLikelihood!)")
+            labelText.appendContentsOf(" \n\n EMOTIONS: \n Anger: \(angerLikelihood!)")
             let joyLikelihood = dict["joyLikelihood"]!
-            labelText.appendContentsOf(" \n Joylikelihood: \(joyLikelihood!)")
+            labelText.appendContentsOf(" \n Joy: \(joyLikelihood!)")
             let sorrowLikelihood = dict["sorrowLikelihood"]!
-            labelText.appendContentsOf(" \n Sorrowlikelihood: \(sorrowLikelihood!)")
+            labelText.appendContentsOf(" \n Sorrow: \(sorrowLikelihood!)")
             let surpriseLikelihood = dict["surpriseLikelihood"]!
-            labelText.appendContentsOf(" \n Surpriselikelihood: \(surpriseLikelihood!)")
+            labelText.appendContentsOf(" \n Surprise: \(surpriseLikelihood!)")
             print(labelText)
             
 /*            let angerLikelihood = dict["angerLikelihood"] as! [AnyObject]
@@ -207,11 +214,18 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate {
         if landmark {
             let dropPin = MKPointAnnotation()
             dropPin.coordinate = location!
+            let mapLocation = CLLocation(latitude: (location!.latitude), longitude: (location!.latitude))
+            
+            print(getCityFromLocation(mapLocation))
+            
+            let wikiURL = Constants.WikipediaRequestValues.wikipediaURL + removeWhiteSpace(labelText)
             dropPin.title = labelText
+            dropPin.subtitle = wikiURL
             performUIUpdatesOnMain ({
                 self.textView.hidden = true
                 self.mapView.hidden = false
-                self.mapView.setCenterCoordinate(location!, animated: true)
+                //self.mapView.setCenterCoordinate(location!, animated: true)
+                self.centerMapOnLocation(mapLocation)
                 self.mapView.addAnnotation(dropPin)
                 self.mapView.selectAnnotation(dropPin, animated: true)
             })
@@ -225,9 +239,149 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate {
         }
     }
     
+    func getCityFromLocation(location : CLLocation) -> String {
+
+        let geoCoder = CLGeocoder()
+        var cityCountryString = ""
+        geoCoder.reverseGeocodeLocation(location, completionHandler: { (placemarks, error) -> Void in
+            // Place details
+            var placeMark: CLPlacemark!
+            print("Placemark = \(placeMark)")
+            placeMark = placemarks?[0]
+            
+            // Address dictionary
+            print(placeMark.addressDictionary)
+            
+            // Location name
+            if let locationName = placeMark.addressDictionary!["Name"] as? NSString {
+                print(locationName)
+            }
+            
+            // Street address
+            if let street = placeMark.addressDictionary!["Thoroughfare"] as? NSString {
+                print(street)
+            }
+            
+            // City
+            if let city = placeMark.addressDictionary!["City"] as? NSString {
+                print(city)
+                cityCountryString.appendContentsOf(city as String)
+            }
+            
+            // Zip code
+            if let zip = placeMark.addressDictionary!["ZIP"] as? NSString {
+                print(zip)
+            }
+            
+            // Country
+            if let country = placeMark.addressDictionary!["Country"] as? NSString {
+                print(country)
+                cityCountryString.appendContentsOf(", " + (country as String))
+            }
+
+            
+        })
+        return cityCountryString
+    }
+    
+    func removeWhiteSpace(var string : String) -> String {
+        print("String with whitespace: \(string)")
+        string = string.stringByReplacingOccurrencesOfString(" ", withString: "_")
+        if string.characters.first == "_" {
+            string.removeAtIndex(string.startIndex)
+        }
+        if string.characters.last == "_" {
+            string.removeAtIndex(string.endIndex)
+        }
+        print("String with no whitespace: \(string)")
+        return string
+    }
+    
+    func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
+        
+        //Use Student Location as annotation object, create annotation view and assign queued annotations if possible
+        //     if let annotation = annotation as? StudentLocation {
+        let identifier = "pin"
+        var view: MKPinAnnotationView
+        if let dequeuedView = mapView.dequeueReusableAnnotationViewWithIdentifier(identifier)
+            as? MKPinAnnotationView {
+            dequeuedView.annotation = annotation
+            view = dequeuedView
+        } else {
+            //If queued annotations not availabel then create new with call out and accessory
+            view = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+            view.canShowCallout = true
+            view.calloutOffset = CGPoint(x: -10, y: 10)
+            view.rightCalloutAccessoryView = UIButton(type: .DetailDisclosure) as UIView
+        }
+        //Return the annotation view
+        return view
+        //    }
+        //    return nil
+    }
+    
+    //Set map view region
+    func centerMapOnLocation(location: CLLocation) {
+        let coordinateRegion = MKCoordinateRegionMakeWithDistance(location.coordinate,
+                                                                  Constants.Map.RegionRadius * 2.0, Constants.Map.RegionRadius * 2.0)
+        mapView.setRegion(coordinateRegion, animated: true)
+    }
+    
     func mapViewDidFinishRenderingMap(mapView: MKMapView, fullyRendered: Bool){
         activityIndicator.stopAnimating()
 
+    }
+    
+    //If call out it tapped then open URL link in Student Location
+    func mapView(mapView: MKMapView!, annotationView view: MKAnnotationView!,
+                 calloutAccessoryControlTapped control: UIControl!) {
+        
+        
+        //let annotation = view.annotation
+        print("Call out was pressed")
+        print("URL =  \(view.annotation?.subtitle!)")
+        //let wikiURL = (view.annotation?.subtitle!)! as String  https://en.wikipedia.org/wiki/Skógafoss
+        let wikiURL = ((view.annotation?.subtitle!)! as String).stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!
+        print(wikiURL)
+        if let url = NSURL(string: wikiURL) {
+            print("Url being opened = \(url)")
+            UIApplication.sharedApplication().openURL(url, options: [ : ]) { (success) in
+                if success {
+                    print ("URL opened")
+                } else {
+                    self.displayError("Cannot present web page")
+                }
+            }
+        } else {
+            displayError("Cannot present web page")
+        }
+/*        print("Url being opened = \(url)")
+        UIApplication.sharedApplication().openURL(url!, options: [ : ]) { (success) in
+            if success {
+                print ("URL opened")
+            } else {
+                self.displayError("Cannot present web page")
+            }
+        }*/
+/*
+        do {
+            let url = try NSURL(fileURLWithPath: wikiURL)
+            print("Url being opened = \(url)")
+            UIApplication.sharedApplication().openURL(url)
+        } catch is ErrorType {
+            displayError("Cannot present web page")
+        }
+        
+*/
+        
+        //Check URL is properly formatted and if not present error on map
+        /*if let url = NSURL(fileURLWithPath: wikiURL) {
+            print("Url being opened = \(url)")
+            UIApplication.sharedApplication().openURL(url)
+        }
+        else {
+            displayError("Cannot present web page")
+        }*/
     }
 
     @IBAction func generalButtonPressed(sender: AnyObject) {
