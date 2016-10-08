@@ -32,6 +32,9 @@ struct Constants {
         static let ApiScheme = "https"
         static let ApiHost = "vision.googleapis.com"
         static let ApiPath = "/v1/images:annotate"
+        
+        static let ApiHostTranslate = "www.googleapis.com"
+        static let ApiPathTranlate = "/language/translate/v2"
     }
     
     
@@ -40,6 +43,9 @@ struct Constants {
         static let ApiKey = "key"
         static let DataFormat = "format"
         static let BundleIdentifier = "X-Ios-Bundle-Identifier"
+        static let Source = "source"
+        static let Target = "target"
+        static let Text = "q"
         
         static let NoJsonCallBack = "nojsoncallback"
         static let Extras = "extras"
@@ -55,7 +61,7 @@ struct Constants {
     
     // Google request values
     struct GoogleRequestValues {
-        static let ApiKey = "Add API KEY here"
+        static let ApiKey = "Google API here"
         static let DataFormat = "json"
         static let BundleIdentifer = ""
         
@@ -64,6 +70,11 @@ struct Constants {
         static let SafeSearch = "1"
         static let PerPage = "12"
         static let Method = "flickr.photos.search"
+    }
+    
+    //Wikipedia request values
+    struct WikipediaRequestValues {
+        static let wikipediaURL = "https://en.wikipedia.org/wiki/"
     }
     
     
@@ -82,6 +93,6 @@ struct Constants {
     
     // Map attributes
     struct Map {
-        static let RegionRadius: CLLocationDistance  = 1000000
+        static let RegionRadius: CLLocationDistance  = 250000
     }
 }

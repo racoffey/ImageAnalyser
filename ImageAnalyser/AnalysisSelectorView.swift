@@ -461,5 +461,27 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         }
     }
     
+    @IBAction func translatedButtonPressed(sender: AnyObject) {
+        print("Translate Button Pressed")
+        let stringToTranslate = "Hola, soy Robert. Pero creo que si"
+        let language = "es"
+        performUIUpdatesOnMain ({
+            self.activityIndicator.hidden = false
+            self.activityIndicator.startAnimating()
+            self.textView.hidden = false
+            self.textView.text = "Text being translated being analysed..."
+            self.textView.reloadInputViews()
+        })
+        //print("Image in face Button pressed: \(self.image!)")
+        GoogleClient.sharedInstance().requestTranslation(stringToTranslate, language: language) { (success, errorString, response) in
+            if success {
+                self.displayResponse(response!)
+            } else {
+                self.displayError(errorString!)
+            }
+        }
+    }
+    
+    
 }
 

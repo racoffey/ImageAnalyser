@@ -195,16 +195,16 @@ class GoogleClient : NSObject {
                 // Save changes to Core Data
                 //CoreDataStackManager.sharedInstance().save()
  */
-                print("About to request translation")
+       /*         print("About to request translation")
                 // Successfully complete session
-                      self.requestTranslation("Gamle breve ledte Katrine Koust på sporet af sin biologiske mor i Sri Lanka. Hun endte med at få en helt ny familie, som hun knuselskede fra første øjeblik.", language: "dk") { (success, errorString, response) in
+                      self.requestTranslation("Gamle breve ledte Katrine Koust på sporet af sin biologiske mor i Sri Lanka. Hun endte med at få en helt ny familie, som hun knuselskede fra første øjeblik.", language: "da") { (success, errorString, response) in
                     if success {
                         print(response!)
                     } else {
                         print(errorString!)
                     }
                  }
-
+*/
                 
                 completionHandlerForSession(true, nil, annotations)
             }
@@ -221,9 +221,12 @@ class GoogleClient : NSObject {
         
         // Build our API request
         let method = ""
-        let parameters : [String: AnyObject] = [Constants.GoogleRequestKeys.ApiKey : (Constants.GoogleRequestValues.ApiKey as AnyObject),       Constants.GoogleRequestKeys.Source : language,
+        let parameters : [String: AnyObject] = [
+            Constants.GoogleRequestKeys.ApiKey : "AIzaSyD1pUc-CpUhSfijn4KI1Nqgy6clmDfSfc0",
+            Constants.GoogleRequestKeys.Source : language,
             Constants.GoogleRequestKeys.Target : target,
-            Constants.GoogleRequestKeys.Text : text]
+            Constants.GoogleRequestKeys.Text : text,
+             ]
         
  /*
         switch analysisType {
@@ -296,6 +299,8 @@ class GoogleClient : NSObject {
             // Handle error case
             if error != nil {
                 completionHandlerForSession(false, "Failed to get result data. \(error)", "")
+                //let resultsDict = error as! [String : AnyObject]
+                //print("Error: \(error)")
             } else {
                 //Put results into a data object, extract result information into Annotations object which is returned
                 
@@ -502,8 +507,8 @@ class GoogleClient : NSObject {
         request.addValue(NSBundle.mainBundle().bundleIdentifier ?? "",forHTTPHeaderField: "X-Ios-Bundle-Identifier")
         //request.HTTPBody = jsonBody.dataUsingEncoding(NSUTF8StringEncoding)
         request.HTTPBody = try! NSJSONSerialization.dataWithJSONObject(jsonBody, options: [])
-        print(request)
-        print(request.allHTTPHeaderFields)
+        print("Request : \(request)")
+        print("All HTTP header fields : \(request.allHTTPHeaderFields)")
         // Prepare request task
         let task = session.dataTaskWithRequest(request as NSURLRequest) { (data, response, error) in
             
@@ -521,6 +526,10 @@ class GoogleClient : NSObject {
             // GUARD: Did we get a successful 2XX response?
             guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode   where statusCode >= 200 && statusCode <= 299 else {
                 sendError("Your POST request returned a status code other than 2xx!")
+                print("Status code : \((response as? NSHTTPURLResponse)?.statusCode)")
+                print("Response : \(response)")
+                print("Error : \(error)")
+                print("Data : \(data)")
                 return
             }
             

@@ -139,6 +139,11 @@
                                         </connections>
                                     </barButtonItem>
                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="zX7-hh-tGa"/>
+                                    <barButtonItem title="Tran" id="4GH-Ul-IFh">
+                                        <connections>
+                                            <action selector="translatedButtonPressed:" destination="rug-xe-kUf" id="355-hK-3BZ"/>
+                                        </connections>
+                                    </barButtonItem>
                                     <barButtonItem title="Text" id="uOC-Hq-ThH">
                                         <connections>
                                             <action selector="textButtonPressed:" destination="rug-xe-kUf" id="Qtr-cL-CmS"/>
