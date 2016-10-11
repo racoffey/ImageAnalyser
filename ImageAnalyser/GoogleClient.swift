@@ -9,6 +9,7 @@
 import Foundation
 import UIKit
 import CoreData
+import MapKit
 //import SwiftyJSON
 
 
@@ -19,14 +20,21 @@ class GoogleClient : NSObject {
     // Shared session
     var session = NSURLSession.sharedSession()
     
+    
 
-    func requestImageAnalysis(image: UIImage, analysisType: String, completionHandlerForSession: (Bool, String?, AnyObject?) -> Void) {
-        let image : UIImage = image
-        print("Reached request image analaysis: \(image)")
-        let imageData = base64EncodeImage(image)
+    func requestImageAnalysis(result : AnalysisResult, completionHandlerForSession: (Bool, String?, AnalysisResult?) -> Void) {
+        let imageData = result.image?.base64EncodedStringWithOptions(.EncodingEndLineWithCarriageReturn)
+        //print("Reached request image analaysis: \(image)")
+        //let imageData = base64EncodeImage(image)
+        let data = NSData(base64EncodedString: imageData!, options: .IgnoreUnknownCharacters)
+        
+        let analysisType = result.analysisType!
+        
         //let imageData = image
         var jsonBody : [String : AnyObject] = [:]
         var responses = [""]
+        
+
         
         // Build our API request
         let method = ""
@@ -37,7 +45,7 @@ class GoogleClient : NSObject {
             jsonBody = [
                 "requests": [
                     "image": [
-                        "content": imageData
+                        "content": imageData!
                     ],
                     "features": [
                         [
@@ -51,7 +59,7 @@ class GoogleClient : NSObject {
             jsonBody = [
                 "requests": [
                     "image": [
-                        "content": imageData
+                        "content": imageData!
                     ],
                     "features": [
                         /*[
@@ -74,7 +82,7 @@ class GoogleClient : NSObject {
             jsonBody = [
                 "requests": [
                     "image": [
-                        "content": imageData
+                        "content": imageData!
                     ],
                     "features": [
                         /*[
@@ -97,7 +105,7 @@ class GoogleClient : NSObject {
             jsonBody = [
                 "requests": [
                     "image": [
-                        "content": imageData
+                        "content": imageData!
                     ],
                     "features": [
                         [
@@ -119,12 +127,11 @@ class GoogleClient : NSObject {
         default: break
         }
 
-
         taskForPOSTMethod(method, parameters: parameters, jsonBody: jsonBody as [String : AnyObject], type: "vision") { (results, error) in
             
             // Handle error case
             if error != nil {
-                completionHandlerForSession(false, "Failed to get result data. \(error)", "")
+                completionHandlerForSession(false, "Failed to get result data. \(error)", result)
             } else {
                 //Put results into a data object, extract result information into Annotations object which is returned
 
@@ -204,13 +211,190 @@ class GoogleClient : NSObject {
                         print(errorString!)
                     }
                  }
-*/
+*/              self.prepareResponse(annotations, result: result)
                 
-                completionHandlerForSession(true, nil, annotations)
+                completionHandlerForSession(true, nil, result)
             }
         }
             
     }
+    
+    
+    func prepareResponse(response : AnyObject, result : AnalysisResult){
+        var labelText : String = ""
+        var count = 0
+        var number = 0
+        var location = CLLocationCoordinate2D?()
+        var landmark = false
+        
+        //let response = annotations as! [String : String]
+        print("Reponse in prepareResponse : \(response)")
+        
+        if (response["labelAnnotations"]!) != nil {
+            var imageLabels : String = ""
+            let labelAnnotations = response["labelAnnotations"] as! [AnyObject]
+            print("LabelAnnotations in displayResponse : \(labelAnnotations)")
+            print("Number of items in labelAnnotations = \(labelAnnotations.count)")
+            if labelAnnotations.count != 0 {
+                count  = 0
+                number = labelAnnotations.count
+                print("Number : \(number)")
+                print(labelAnnotations)
+                imageLabels = "IMAGE LABELS:\n"
+                while count < number {
+                    print("Count : \(count)")
+                    print("Label text : \(imageLabels)")
+                    let dict = labelAnnotations[count]
+                    let str = dict["description"]!
+                    
+                    if count == number-1 {
+                        imageLabels.appendContentsOf("\(str!).")
+                    } else {
+                        imageLabels.appendContentsOf("\(str!), ")
+                    }
+                    count += 1
+                }
+            }
+            labelText = imageLabels
+            result.updateImageText(imageLabels)
+            print(labelText)
+        } else {
+            print("Response contains no label annotations")
+        }
+        
+        if (response["textAnnotations"]!) != nil {
+            let textAnnotations = response["textAnnotations"] as! [AnyObject]
+            print("TextAnnotations in displayResponse : \(textAnnotations)")
+            print("Number of items in textAnnotations = \(textAnnotations.count)")
+            
+            var imageText = "IMAGE TEXT:\n"
+            let dict = textAnnotations[count]
+            let str = dict["description"]!
+            imageText.appendContentsOf(" \(str!)")
+            
+            result.updateImageText(imageText)
+            labelText.appendContentsOf(imageText)
+            print(labelText)
+        } else {
+            print("No text annotations in response")
+        }
+        
+        if (response["landmarkAnnotations"]!) != nil {
+            let landmarkAnnotations = response["landmarkAnnotations"] as! [AnyObject]
+            print("LandmarkAnnotations in displayResponse : \(landmarkAnnotations)")
+            
+            //labelText = "LANDMARK: "
+            let dict = landmarkAnnotations[count]
+            let landmarkLabel = dict["description"]! as! String
+            result.updateLandmarkLabel(landmarkLabel)
+            labelText.appendContentsOf(" \(landmarkLabel)")
+            print(labelText)
+            
+            let locations = dict["locations"] as! [AnyObject]
+            print("Locations = \(locations)")
+            let latLng = locations[0]
+            print("Latlng = \(latLng)")
+            let coordinates = latLng["latLng"]!
+            print("Coordinates = \(coordinates)")
+            let latitude = coordinates!["latitude"] as! Double
+            let longitude = coordinates!["longitude"] as! Double
+            result.updateCoodinates(latitude, longitude: longitude)
+            print("latitude = \(latitude)")
+            print("longitude = \(longitude)")
+            location = CLLocationCoordinate2DMake(latitude, longitude)
+            landmark = true
+            
+        } else {
+            print("No landmark annotations in response")
+        }
+        
+        if (response["faceAnnotations"]!) != nil {
+            let faceAnnotations = response["faceAnnotations"] as! [AnyObject]
+            print("FaceAnnotations in displayResponse : \(faceAnnotations)")
+            
+            //labelText = "LANDMARK: "
+            let dict = faceAnnotations[0]
+            let angerLikelihood = dict["angerLikelihood"]!
+            labelText.appendContentsOf(" \n\n EMOTIONS: \n Anger: \(angerLikelihood!)")
+            let joyLikelihood = dict["joyLikelihood"]!
+            labelText.appendContentsOf(" \n Joy: \(joyLikelihood!)")
+            let sorrowLikelihood = dict["sorrowLikelihood"]!
+            labelText.appendContentsOf(" \n Sorrow: \(sorrowLikelihood!)")
+            let surpriseLikelihood = dict["surpriseLikelihood"]!
+            labelText.appendContentsOf(" \n Surprise: \(surpriseLikelihood!)")
+            print(labelText)
+            
+            /*            let angerLikelihood = dict["angerLikelihood"] as! [AnyObject]
+             print("AngerLikelihood = \(angerLikelihood)")
+             let joyLikelihood = dict["joyLikelihood"] as! [AnyObject]
+             print("AngerLikelihood = \(joyLikelihood)")*/
+            /*let latLng = locations[0]
+             print("Latlng = \(latLng)")
+             let coordinates = latLng["latLng"]!
+             print("Coordinates = \(coordinates)")
+             let latitude = coordinates!["latitude"] as! Double
+             let longitude = coordinates!["longitude"] as! Double
+             print("latitude = \(latitude)")
+             print("longitude = \(longitude)")
+             location = CLLocationCoordinate2DMake(latitude, longitude)
+             landmark = true*/
+            
+        } else {
+            print("No face annotations in response")
+        }
+        
+        if labelText == "" {
+            labelText = "Analysis yeilded no labels for this image."
+            result.updateLabelText(labelText)
+        }
+        
+        
+        /*
+         if response["textAnnotations"] != nil {
+         let textAnnotations = response["textAnnotations"] as! [AnyObject]
+         print("TextAnnotations in displayResponse : \(textAnnotations)")
+         print("Number of items in labelAnnotations = \(textAnnotations.count)")
+         if textAnnotations.count != 0 {
+         count  = 0
+         number = textAnnotations.count
+         print("Number : \(number)")
+         print(labelAnnotations)
+         labelText = "/n TEXT IN IMAGE: "
+         while count < number {
+         let dict = textAnnotations[count]
+         let str = dict["description"]!
+         labelText.appendContentsOf(" \(str!)")
+         count += 1
+         }
+         }
+         } else {
+         print("No text in image")
+         }*/
+        /*
+         let faceAnnotations = response["faceAnnotations"]!
+         print("FaceAnnotations in DR : \(faceAnnotations)")
+         if faceAnnotations != nil {
+         count  = 0
+         number = faceAnnotations!.count
+         print("Number : \(number)")
+         labelText.appendContentsOf("\n FACE LABELS: ")
+         while count < number {
+         let dict = faceAnnotations![count]! as! [NSObject:AnyObject]
+         let str = dict["description"]!
+         labelText.appendContentsOf(" \(str)")
+         count += 1
+         }
+         }
+         
+         */
+        
+        
+        //print(labelAnnotations!![0]["description"])
+        //labelText = labelAnnotations!![0]["description"] as! String
+        
+ 
+    }
+    
     
     func requestTranslation(text: String, language: String, completionHandlerForSession: (Bool, String?, AnyObject?) -> Void) {
         print("Reached request translation")
@@ -222,7 +406,7 @@ class GoogleClient : NSObject {
         // Build our API request
         let method = ""
         let parameters : [String: AnyObject] = [
-            Constants.GoogleRequestKeys.ApiKey : "AIzaSyD1pUc-CpUhSfijn4KI1Nqgy6clmDfSfc0",
+            Constants.GoogleRequestKeys.ApiKey : Constants.GoogleRequestValues.ApiKey,
             Constants.GoogleRequestKeys.Source : language,
             Constants.GoogleRequestKeys.Target : target,
             Constants.GoogleRequestKeys.Text : text,
@@ -719,6 +903,19 @@ class GoogleClient : NSObject {
         }
         
         return imagedata!.base64EncodedStringWithOptions(.EncodingEndLineWithCarriageReturn)
+    }
+    
+    func base64EncodeImageToNSData(image: UIImage) -> NSData {
+        var imagedata = UIImagePNGRepresentation(image)
+        //var imagedata = UIImageJPEGRepresentation(image, 1)
+        
+        // Resize the image if it exceeds the 2MB API limit
+        if (imagedata!.length > 2097152) {
+            let oldSize: CGSize = image.size
+            let newSize: CGSize = CGSizeMake(800, oldSize.height / oldSize.width * 800)
+            imagedata = resizeImage(newSize, image: image) as NSData
+        }
+        return imagedata!
     }
     
  /*   func convertStringToDictionary(json: String) -> [String: AnyObject]? {

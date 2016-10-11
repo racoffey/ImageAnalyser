@@ -13,6 +13,12 @@ import MapKit
 class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegate {
     
     var image: UIImage?
+    
+    // Instantiate Result
+    var result : AnalysisResult? = nil
+    
+    // Get context from shared instance from CoreDataStackManager
+    var sharedContext = CoreDataStackManager.sharedInstance().context
 
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var generalButton: UIBarButtonItem!
@@ -25,13 +31,21 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
 
 
     override func viewWillAppear(animated: Bool) {
-        print("Image in Analysis View Controller is : \(image!)")
+        print("Image in Analysis View Controller is : \(self.parentViewController)")
+        image = UIImage(data: (result?.image)!)
         imageView.contentMode = UIViewContentMode.ScaleAspectFit
         imageView.image = image
         activityIndicator.hidden = true
         activityIndicator.hidesWhenStopped = true
+        if result?.imageLabels != "" {
+            textView.text = result?.imageLabels
+        }
+        else{
+            textView.text = "Select analysis type"
+        }
         textView.hidden = false
         mapView.hidden = true
+        
     }
     
     override func viewDidLoad() {
@@ -52,7 +66,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         self.presentViewController(alert, animated: true, completion: nil)
     }
     
-    func displayResponse(response : AnyObject){
+ /*   func displayResponse(response : AnyObject){
         var labelText : String = ""
         var count = 0
         var number = 0
@@ -63,6 +77,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         print("Reponse in displayResponse : \(response)")
         
         if (response["labelAnnotations"]!) != nil {
+            var imageText : String = ""
             let labelAnnotations = response["labelAnnotations"] as! [AnyObject]
             print("LabelAnnotations in displayResponse : \(labelAnnotations)")
             print("Number of items in labelAnnotations = \(labelAnnotations.count)")
@@ -71,21 +86,23 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
                 number = labelAnnotations.count
                 print("Number : \(number)")
                 print(labelAnnotations)
-                labelText = "IMAGE LABELS:\n"
+                imageText = "IMAGE LABELS:\n"
                 while count < number {
                     print("Count : \(count)")
-                    print("Label text : \(labelText)")
+                    print("Label text : \(imageText)")
                     let dict = labelAnnotations[count]
                     let str = dict["description"]!
                     
                     if count == number-1 {
-                        labelText.appendContentsOf("\(str!).")
+                        imageText.appendContentsOf("\(str!).")
                     } else {
-                        labelText.appendContentsOf("\(str!), ")
+                        imageText.appendContentsOf("\(str!), ")
                     }
                     count += 1
                 }
             }
+            labelText = imageText
+            result?.updateImageText(imageText)
             print(labelText)
         } else {
             print("Response contains no lable annotations")
@@ -237,6 +254,45 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
                 self.textView.reloadInputViews()
             })
         }
+    }*/
+    
+    func displayResponse(){
+        performUIUpdatesOnMain ({
+            self.activityIndicator.stopAnimating()
+            self.textView.hidden = false
+            self.textView.text = self.result!.labelText
+            self.textView.reloadInputViews()
+        })
+    }
+    
+    func displayMapView() {
+        let dropPin = MKPointAnnotation()
+        dropPin.coordinate = (result?.coordinate)!
+        let mapLocation = CLLocation(latitude: (result!.latitude), longitude: (result!.longitude))
+        
+        print(getCityFromLocation(mapLocation))
+        
+        let wikiURL = Constants.WikipediaRequestValues.wikipediaURL + removeWhiteSpace(result!.labelText!)
+        dropPin.title = result!.labelText
+        dropPin.subtitle = wikiURL
+        performUIUpdatesOnMain ({
+            self.textView.hidden = true
+            self.mapView.hidden = false
+            //self.mapView.setCenterCoordinate(location!, animated: true)
+            self.centerMapOnLocation(mapLocation)
+            self.mapView.addAnnotation(dropPin)
+            self.mapView.selectAnnotation(dropPin, animated: true)
+        })
+    }
+    
+    func animateActivityIndicator(){
+        performUIUpdatesOnMain ({
+            self.activityIndicator.hidden = false
+            self.activityIndicator.startAnimating()
+            self.textView.hidden = false
+            self.textView.text = "Image being analysed..."
+            self.textView.reloadInputViews()
+        })
     }
     
     func getCityFromLocation(location : CLLocation) -> String {
@@ -386,17 +442,12 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
 
     @IBAction func generalButtonPressed(sender: AnyObject) {
         print("Reached Button Pressed")
-        performUIUpdatesOnMain ({
-            self.activityIndicator.hidden = false
-            self.activityIndicator.startAnimating()
-            self.textView.hidden = false
-            self.textView.text = "Image being analysed..."
-            self.textView.reloadInputViews()
-        })
-
-        GoogleClient.sharedInstance().requestImageAnalysis(self.image!, analysisType: "general") { (success, errorString, response) in
+        animateActivityIndicator()
+        result?.updateAnalysisType("general")
+        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, errorString, result) in
             if success {
-                self.displayResponse(response!)
+                self.result = result
+                self.displayResponse()
             } else {
                 self.displayError(errorString!)
             }
@@ -405,56 +456,43 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
     
     @IBAction func textButtonPressed(sender: AnyObject) {
         print("Text Button Pressed")
-        performUIUpdatesOnMain ({
-            self.activityIndicator.hidden = false
-            self.activityIndicator.startAnimating()
-            self.textView.hidden = false
-            self.textView.text = "Image being analysed..."
-            self.textView.reloadInputViews()
-        })
-        
-        GoogleClient.sharedInstance().requestImageAnalysis(self.image!, analysisType: "text") { (success, errorString, response) in
+        animateActivityIndicator()
+        result?.updateAnalysisType("text")
+        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, errorString, result) in
             if success {
-                self.displayResponse(response!)
+                self.displayResponse()
             } else {
                 self.displayError(errorString!)
             }
         }
+        displayResponse()
     }
     
     @IBAction func landmarkButtonPressed(sender: AnyObject) {
         print("Landmark Button Pressed")
-        performUIUpdatesOnMain ({
-            self.activityIndicator.hidden = false
-            self.activityIndicator.startAnimating()
-            self.textView.hidden = false
-            self.textView.text = "Image being analysed..."
-            self.textView.reloadInputViews()
-        })
+        animateActivityIndicator()
         print("Image in landmark Button pressed: \(self.image!)")
-        GoogleClient.sharedInstance().requestImageAnalysis(self.image!, analysisType: "landmark") { (success, errorString, response) in
+        result?.updateAnalysisType("landmark")
+        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, errorString, result) in
             if success {
-                self.displayResponse(response!)
+                self.displayResponse()
             } else {
                 self.displayError(errorString!)
             }
         }
+        displayMapView()
     }
     
     
     @IBAction func faceButtonPressed(sender: AnyObject) {
         print("Face Button Pressed")
-        performUIUpdatesOnMain ({
-            self.activityIndicator.hidden = false
-            self.activityIndicator.startAnimating()
-            self.textView.hidden = false
-            self.textView.text = "Image being analysed..."
-            self.textView.reloadInputViews()
-        })
+        animateActivityIndicator()
         print("Image in face Button pressed: \(self.image!)")
-        GoogleClient.sharedInstance().requestImageAnalysis(self.image!, analysisType: "face") { (success, errorString, response) in
+        
+        result?.updateAnalysisType("face")
+        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, errorString, result) in
             if success {
-                self.displayResponse(response!)
+                self.displayResponse()
             } else {
                 self.displayError(errorString!)
             }
@@ -473,9 +511,9 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
             self.textView.reloadInputViews()
         })
         //print("Image in face Button pressed: \(self.image!)")
-        GoogleClient.sharedInstance().requestTranslation(stringToTranslate, language: language) { (success, errorString, response) in
+        GoogleClient.sharedInstance().requestTranslation(stringToTranslate, language: language) { (success, errorString, result) in
             if success {
-                self.displayResponse(response!)
+                self.displayResponse()
             } else {
                 self.displayError(errorString!)
             }
