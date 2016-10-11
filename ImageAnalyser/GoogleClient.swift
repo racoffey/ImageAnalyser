@@ -345,9 +345,8 @@ class GoogleClient : NSObject {
         
         if labelText == "" {
             labelText = "Analysis yeilded no labels for this image."
-            result.updateLabelText(labelText)
         }
-        
+        result.updateLabelText(labelText)
         
         /*
          if response["textAnnotations"] != nil {

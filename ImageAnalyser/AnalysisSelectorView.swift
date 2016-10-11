@@ -37,21 +37,26 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         imageView.image = image
         activityIndicator.hidden = true
         activityIndicator.hidesWhenStopped = true
-        if result?.imageLabels != "" {
-            textView.text = result?.imageLabels
+        textView.text = "Select analysis type"
+        if result?.labelText != nil {
+            if result?.analysisType == "landmark" {
+              displayMapView()
+            } else {
+            textView.text = result?.labelText
+            }
         }
-        else{
-            textView.text = "Select analysis type"
-        }
+        
+        print("Textview text = \(textView.text)")
         textView.hidden = false
         mapView.hidden = true
-        
+
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         self.mapView.delegate = self
+
 
 
     }
@@ -447,6 +452,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, errorString, result) in
             if success {
                 self.result = result
+                print("Image label = \(result?.labelText)")
                 self.displayResponse()
             } else {
                 self.displayError(errorString!)
@@ -460,6 +466,8 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         result?.updateAnalysisType("text")
         GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, errorString, result) in
             if success {
+                self.result = result
+                print("Image label = \(result?.labelText)")
                 self.displayResponse()
             } else {
                 self.displayError(errorString!)
@@ -475,12 +483,13 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         result?.updateAnalysisType("landmark")
         GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, errorString, result) in
             if success {
-                self.displayResponse()
+                self.result = result
+                self.displayMapView()
             } else {
                 self.displayError(errorString!)
             }
         }
-        displayMapView()
+
     }
     
     
@@ -492,6 +501,8 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         result?.updateAnalysisType("face")
         GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, errorString, result) in
             if success {
+                self.result = result
+                print("Image label = \(result?.labelText)")
                 self.displayResponse()
             } else {
                 self.displayError(errorString!)
