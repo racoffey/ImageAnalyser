@@ -22,7 +22,7 @@ class GoogleClient : NSObject {
     
     
 
-    func requestImageAnalysis(result : AnalysisResult, completionHandlerForSession: (Bool, String?, AnalysisResult?) -> Void) {
+    func requestImageAnalysis(result : AnalysisResult, completionHandlerForSession: (success: Bool, error: NSError, result: AnalysisResult?) -> Void) {
         let imageData = result.image?.base64EncodedStringWithOptions(.EncodingEndLineWithCarriageReturn)
         //print("Reached request image analaysis: \(image)")
         //let imageData = base64EncodeImage(image)
@@ -131,7 +131,7 @@ class GoogleClient : NSObject {
             
             // Handle error case
             if error != nil {
-                completionHandlerForSession(false, "Failed to get result data. \(error)", result)
+                completionHandlerForSession(success: true, error: error!, result: result)
             } else {
                 //Put results into a data object, extract result information into Annotations object which is returned
 
@@ -211,21 +211,28 @@ class GoogleClient : NSObject {
                         print(errorString!)
                     }
                  }
-*/              self.prepareResponse(annotations, result: result)
+                 */
                 
-                completionHandlerForSession(true, nil, result)
+                self.prepareResponse(annotations, result: result) { (success, error, result) in
+                    if success {
+                            completionHandlerForSession(success: true, error: error, result: result)
+                    } else {
+                            completionHandlerForSession(success: false, error: error, result: nil)
+                    }
+                }
             }
         }
-            
     }
     
     
-    func prepareResponse(response : AnyObject, result : AnalysisResult){
+    func prepareResponse(response : AnyObject, result : AnalysisResult, completionHandlerForSession: (success : Bool, error : NSError, result : AnalysisResult) -> Void) {
         var labelText : String = ""
         var count = 0
         var number = 0
-        var location = CLLocationCoordinate2D?()
+        //var location = CLLocationCoordinate2D?()
+        var location = CLLocation()
         var landmark = false
+        let error = NSError(domain: "ImagerAnalyser.GoogleClient.prepareResponse", code: 1, userInfo: [:])
         
         //let response = annotations as! [String : String]
         print("Reponse in prepareResponse : \(response)")
@@ -301,7 +308,9 @@ class GoogleClient : NSObject {
             result.updateCoodinates(latitude, longitude: longitude)
             print("latitude = \(latitude)")
             print("longitude = \(longitude)")
-            location = CLLocationCoordinate2DMake(latitude, longitude)
+            //location = CLLocationCoordinate2DMake(latitude, longitude)
+            location = CLLocation(latitude: latitude, longitude: longitude)
+
             landmark = true
             
         } else {
@@ -324,21 +333,6 @@ class GoogleClient : NSObject {
             labelText.appendContentsOf(" \n Surprise: \(surpriseLikelihood!)")
             print(labelText)
             
-            /*            let angerLikelihood = dict["angerLikelihood"] as! [AnyObject]
-             print("AngerLikelihood = \(angerLikelihood)")
-             let joyLikelihood = dict["joyLikelihood"] as! [AnyObject]
-             print("AngerLikelihood = \(joyLikelihood)")*/
-            /*let latLng = locations[0]
-             print("Latlng = \(latLng)")
-             let coordinates = latLng["latLng"]!
-             print("Coordinates = \(coordinates)")
-             let latitude = coordinates!["latitude"] as! Double
-             let longitude = coordinates!["longitude"] as! Double
-             print("latitude = \(latitude)")
-             print("longitude = \(longitude)")
-             location = CLLocationCoordinate2DMake(latitude, longitude)
-             landmark = true*/
-            
         } else {
             print("No face annotations in response")
         }
@@ -348,6 +342,28 @@ class GoogleClient : NSObject {
         }
         result.updateLabelText(labelText)
         
+        if result.analysisType == "landmark"{
+            
+            
+           /* getCityAndCountry(location, result: result) { (success, error, result) in
+                if success {
+                    completionHandlerForSession(success: true, error: error, result: result)
+                } else {
+                    completionHandlerForSession(success: false, error: error, result: result)
+                }
+            }*/
+
+            getCityAndCountry(location, result: result)
+            while result.country == nil {
+                //print("Delaying 0.1 seconds")
+                //delay(0.1)
+            }
+            completionHandlerForSession(success: true, error: error, result: result)
+            
+        } else {
+            completionHandlerForSession(success: true, error: error, result: result)
+        }
+
         /*
          if response["textAnnotations"] != nil {
          let textAnnotations = response["textAnnotations"] as! [AnyObject]
@@ -477,10 +493,10 @@ class GoogleClient : NSObject {
         }
         */
         
-        taskForPOSTMethod(method, parameters: parameters, jsonBody: jsonBody as [String : AnyObject], type: "translate") { (results, error) in
+        taskForGETMethod(method, parameters: parameters, jsonBody: jsonBody as [String : AnyObject], type: "translate") { (results, error) in
             
             // Handle error case
-            if error != nil {
+            if error.code == 1 {
                 completionHandlerForSession(false, "Failed to get result data. \(error)", "")
                 //let resultsDict = error as! [String : AnyObject]
                 //print("Error: \(error)")
@@ -687,7 +703,7 @@ class GoogleClient : NSObject {
 
         request.HTTPMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue(NSBundle.mainBundle().bundleIdentifier ?? "",forHTTPHeaderField: "X-Ios-Bundle-Identifier")
+        request.addValue(NSBundle.mainBundle().bundleIdentifier ?? "",forHTTPHeaderField: "X-Ios-Bundle-Identifier" )
         //request.HTTPBody = jsonBody.dataUsingEncoding(NSUTF8StringEncoding)
         request.HTTPBody = try! NSJSONSerialization.dataWithJSONObject(jsonBody, options: [])
         print("Request : \(request)")
@@ -735,21 +751,33 @@ class GoogleClient : NSObject {
     
 
     
-    
- /*
+ 
     // GET method
-    func taskForGETMethod(method: String, var parameters: [String:AnyObject], completionHandlerForGET: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
+    func taskForGETMethod(method: String, var parameters: [String:AnyObject], jsonBody: [String: AnyObject], type: String, completionHandlerForGET: (result: AnyObject, error: NSError) -> Void) -> NSURLSessionDataTask {
         
+        var parameters = parameters
+        //var request = NSMutableURLRequest()
+                
+                
         //Construct the URL request using input parameters
-        let request = NSMutableURLRequest(URL: parseURLFromParameters(parameters, withPathExtension: method))
+        let request = NSMutableURLRequest(URL: parseTranslateURLFromParameters(parameters, withPathExtension: method))
         
+        request.HTTPMethod = "GET"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(NSBundle.mainBundle().bundleIdentifier ?? "",forHTTPHeaderField: "X-Ios-Bundle-Identifier" )
+        //request.HTTPBody = jsonBody.dataUsingEncoding(NSUTF8StringEncoding)
+        request.HTTPBody = try! NSJSONSerialization.dataWithJSONObject(jsonBody, options: [])
+        print("Request : \(request)")
+        print("All HTTP header fields : \(request.allHTTPHeaderFields)")
+            
+                
         //Prepare the request task
         let task = session.dataTaskWithRequest(request) { (data, response, error) in
             
             func sendError(error: String) {
                 print("Error : \(error)")
                 let userInfo = [NSLocalizedDescriptionKey : error]
-                completionHandlerForGET(result: nil, error: NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
+                completionHandlerForGET(result: "", error: NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
             }
             
             //Was there an error?
@@ -780,7 +808,7 @@ class GoogleClient : NSObject {
         
         return task
     }
-  */
+  
     
     // Assisting functions
  /*
@@ -843,19 +871,20 @@ class GoogleClient : NSObject {
     
     
     // Parse raw JSON to NS object
-    private func convertDataWithCompletionHandler(data: NSData, completionHandlerForConvertData: (AnyObject?, NSError?) -> Void) {
+    private func convertDataWithCompletionHandler(data: NSData, completionHandlerForConvertData: (AnyObject, NSError) -> Void) {
         
         var parsedResult: AnyObject?
+        let error = NSError(domain: "com.udacity.imageanalyser", code: 0, userInfo: [:])
         
         //Attempt to parse data and report error if failure
         do {
             parsedResult = try NSJSONSerialization.JSONObjectWithData(data as NSData, options: .MutableContainers)
         } catch {
             let userInfo = [NSLocalizedDescriptionKey : "Could not parse the data as JSON"]
-            completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
+            completionHandlerForConvertData("", NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
         }
         // Return parsed result
-        completionHandlerForConvertData(parsedResult, nil)
+        completionHandlerForConvertData(parsedResult!, error)
     }
     
     // Parse raw JSON to NS object
@@ -916,6 +945,60 @@ class GoogleClient : NSObject {
         }
         return imagedata!
     }
+    
+    //func getCityAndCountry(location : CLLocation, result : AnalysisResult, completionHandlerForSession: (success : Bool, error : NSError, result : AnalysisResult)) -> Void {
+    
+      func getCityAndCountry(location : CLLocation, result : AnalysisResult) {
+        
+        //var success: Bool
+        //var localError: NSError
+        let geoCoder = CLGeocoder()
+        var country = ""
+        geoCoder.reverseGeocodeLocation(location) { (placemarks, error) -> Void in
+
+            if error == nil {
+                // Place details
+                var placeMark: CLPlacemark!
+                print("Placemark = \(placeMark)")
+                placeMark = placemarks?[0]
+                
+                // Address dictionary
+                print(placeMark.addressDictionary)
+                
+                // Location name
+                if let locationName = placeMark.addressDictionary!["Name"] as? NSString {
+                    print(locationName)
+                }
+                
+                // Street address
+                if let street = placeMark.addressDictionary!["Thoroughfare"] as? NSString {
+                    print(street)
+                }
+                
+                // City
+                if let city = placeMark.addressDictionary!["City"] as? String {
+                    print(city)
+                    result.updateCity(city)
+                }
+                
+                // Zip code
+                if let zip = placeMark.addressDictionary!["ZIP"] as? NSString {
+                    print(zip)
+                }
+                
+                // Country
+                if let country = placeMark.addressDictionary!["Country"] as? String {
+                    print(country)
+                    result.updateCountry(country)
+                }
+/*                completionHandlerForSession(true, error, result)
+            } else {
+                completionHandlerForSession(false, error, result)*/
+            }
+        }
+        return
+    }
+    
     
  /*   func convertStringToDictionary(json: String) -> [String: AnyObject]? {
         let newJSON : String?

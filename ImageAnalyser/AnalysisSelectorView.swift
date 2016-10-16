@@ -14,7 +14,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
     
     var image: UIImage?
     
-    // Instantiate Result
+    // Instantiate Analysis Result
     var result : AnalysisResult? = nil
     
     // Get context from shared instance from CoreDataStackManager
@@ -31,22 +31,23 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
 
 
     override func viewWillAppear(animated: Bool) {
-        print("Image in Analysis View Controller is : \(self.parentViewController)")
+        
         image = UIImage(data: (result?.image)!)
         imageView.contentMode = UIViewContentMode.ScaleAspectFit
         imageView.image = image
         activityIndicator.hidden = true
         activityIndicator.hidesWhenStopped = true
-        textView.text = "Select analysis type"
+
         if result?.labelText != nil {
             if result?.analysisType == "landmark" {
               displayMapView()
             } else {
             textView.text = result?.labelText
             }
+        } else {
+            textView.text = "Select analysis type"
         }
-        
-        print("Textview text = \(textView.text)")
+
         textView.hidden = false
         mapView.hidden = true
 
@@ -71,195 +72,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         self.presentViewController(alert, animated: true, completion: nil)
     }
     
- /*   func displayResponse(response : AnyObject){
-        var labelText : String = ""
-        var count = 0
-        var number = 0
-        var location = CLLocationCoordinate2D?()
-        var landmark = false
-        
-        //let response = annotations as! [String : String]
-        print("Reponse in displayResponse : \(response)")
-        
-        if (response["labelAnnotations"]!) != nil {
-            var imageText : String = ""
-            let labelAnnotations = response["labelAnnotations"] as! [AnyObject]
-            print("LabelAnnotations in displayResponse : \(labelAnnotations)")
-            print("Number of items in labelAnnotations = \(labelAnnotations.count)")
-            if labelAnnotations.count != 0 {
-                count  = 0
-                number = labelAnnotations.count
-                print("Number : \(number)")
-                print(labelAnnotations)
-                imageText = "IMAGE LABELS:\n"
-                while count < number {
-                    print("Count : \(count)")
-                    print("Label text : \(imageText)")
-                    let dict = labelAnnotations[count]
-                    let str = dict["description"]!
-                    
-                    if count == number-1 {
-                        imageText.appendContentsOf("\(str!).")
-                    } else {
-                        imageText.appendContentsOf("\(str!), ")
-                    }
-                    count += 1
-                }
-            }
-            labelText = imageText
-            result?.updateImageText(imageText)
-            print(labelText)
-        } else {
-            print("Response contains no lable annotations")
-        }
-        
-        if (response["textAnnotations"]!) != nil {
-            let textAnnotations = response["textAnnotations"] as! [AnyObject]
-            print("TextAnnotations in displayResponse : \(textAnnotations)")
-            print("Number of items in textAnnotations = \(textAnnotations.count)")
-        
-            labelText = "IMAGE TEXT:\n"
-            let dict = textAnnotations[count]
-            let str = dict["description"]!
-            labelText.appendContentsOf(" \(str!)")
-            
-            print(labelText)
-        } else {
-            print("No text annotations in response")
-        }
-        
-        if (response["landmarkAnnotations"]!) != nil {
-            let landmarkAnnotations = response["landmarkAnnotations"] as! [AnyObject]
-            print("LandmarkAnnotations in displayResponse : \(landmarkAnnotations)")
-            
-            //labelText = "LANDMARK: "
-            let dict = landmarkAnnotations[count]
-            let str = dict["description"]!
-            labelText.appendContentsOf(" \(str!)")
-            print(labelText)
-            
-            let locations = dict["locations"] as! [AnyObject]
-            print("Locations = \(locations)")
-            let latLng = locations[0]
-            print("Latlng = \(latLng)")
-            let coordinates = latLng["latLng"]!
-            print("Coordinates = \(coordinates)")
-            let latitude = coordinates!["latitude"] as! Double
-            let longitude = coordinates!["longitude"] as! Double
-            print("latitude = \(latitude)")
-            print("longitude = \(longitude)")
-            location = CLLocationCoordinate2DMake(latitude, longitude)
-            landmark = true
-            
-        } else {
-            print("No landmark annotations in response")
-        }
-        
-        if (response["faceAnnotations"]!) != nil {
-            let faceAnnotations = response["faceAnnotations"] as! [AnyObject]
-            print("FaceAnnotations in displayResponse : \(faceAnnotations)")
-            
-            //labelText = "LANDMARK: "
-            let dict = faceAnnotations[0]
-            let angerLikelihood = dict["angerLikelihood"]!
-            labelText.appendContentsOf(" \n\n EMOTIONS: \n Anger: \(angerLikelihood!)")
-            let joyLikelihood = dict["joyLikelihood"]!
-            labelText.appendContentsOf(" \n Joy: \(joyLikelihood!)")
-            let sorrowLikelihood = dict["sorrowLikelihood"]!
-            labelText.appendContentsOf(" \n Sorrow: \(sorrowLikelihood!)")
-            let surpriseLikelihood = dict["surpriseLikelihood"]!
-            labelText.appendContentsOf(" \n Surprise: \(surpriseLikelihood!)")
-            print(labelText)
-            
-/*            let angerLikelihood = dict["angerLikelihood"] as! [AnyObject]
-            print("AngerLikelihood = \(angerLikelihood)")
-            let joyLikelihood = dict["joyLikelihood"] as! [AnyObject]
-            print("AngerLikelihood = \(joyLikelihood)")*/
-            /*let latLng = locations[0]
-            print("Latlng = \(latLng)")
-            let coordinates = latLng["latLng"]!
-            print("Coordinates = \(coordinates)")
-            let latitude = coordinates!["latitude"] as! Double
-            let longitude = coordinates!["longitude"] as! Double
-            print("latitude = \(latitude)")
-            print("longitude = \(longitude)")
-            location = CLLocationCoordinate2DMake(latitude, longitude)
-            landmark = true*/
-            
-        } else {
-            print("No face annotations in response")
-        }
 
-/*
-        if response["textAnnotations"] != nil {
-            let textAnnotations = response["textAnnotations"] as! [AnyObject]
-            print("TextAnnotations in displayResponse : \(textAnnotations)")
-            print("Number of items in labelAnnotations = \(textAnnotations.count)")
-            if textAnnotations.count != 0 {
-                count  = 0
-                number = textAnnotations.count
-                print("Number : \(number)")
-                print(labelAnnotations)
-                labelText = "/n TEXT IN IMAGE: "
-                while count < number {
-                    let dict = textAnnotations[count]
-                    let str = dict["description"]!
-                    labelText.appendContentsOf(" \(str!)")
-                    count += 1
-                }
-            }
-        } else {
-            print("No text in image")
-        }*/
-/*
-        let faceAnnotations = response["faceAnnotations"]!
-        print("FaceAnnotations in DR : \(faceAnnotations)")
-        if faceAnnotations != nil {
-            count  = 0
-            number = faceAnnotations!.count
-            print("Number : \(number)")
-            labelText.appendContentsOf("\n FACE LABELS: ")
-            while count < number {
-                let dict = faceAnnotations![count]! as! [NSObject:AnyObject]
-                let str = dict["description"]!
-                labelText.appendContentsOf(" \(str)")
-                count += 1
-            }
-        }
-        
-  */      
-        
-
-        //print(labelAnnotations!![0]["description"])
-        //labelText = labelAnnotations!![0]["description"] as! String
-        
-        if landmark {
-            let dropPin = MKPointAnnotation()
-            dropPin.coordinate = location!
-            let mapLocation = CLLocation(latitude: (location!.latitude), longitude: (location!.latitude))
-            
-            print(getCityFromLocation(mapLocation))
-            
-            let wikiURL = Constants.WikipediaRequestValues.wikipediaURL + removeWhiteSpace(labelText)
-            dropPin.title = labelText
-            dropPin.subtitle = wikiURL
-            performUIUpdatesOnMain ({
-                self.textView.hidden = true
-                self.mapView.hidden = false
-                //self.mapView.setCenterCoordinate(location!, animated: true)
-                self.centerMapOnLocation(mapLocation)
-                self.mapView.addAnnotation(dropPin)
-                self.mapView.selectAnnotation(dropPin, animated: true)
-            })
-        } else {
-            performUIUpdatesOnMain ({
-                self.activityIndicator.stopAnimating()
-                self.textView.hidden = false
-                self.textView.text = labelText
-                self.textView.reloadInputViews()
-            })
-        }
-    }*/
     
     func displayResponse(){
         performUIUpdatesOnMain ({
@@ -275,10 +88,9 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         dropPin.coordinate = (result?.coordinate)!
         let mapLocation = CLLocation(latitude: (result!.latitude), longitude: (result!.longitude))
         
-        print(getCityFromLocation(mapLocation))
-        
         let wikiURL = Constants.WikipediaRequestValues.wikipediaURL + removeWhiteSpace(result!.labelText!)
-        dropPin.title = result!.labelText
+     //   let wikiURL = Constants.WikipediaRequestValues.wikipediaURL + result!.labelText!
+        dropPin.title = result!.labelText! + (", \((result?.country)!)")
         dropPin.subtitle = wikiURL
         performUIUpdatesOnMain ({
             self.textView.hidden = true
@@ -299,7 +111,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
             self.textView.reloadInputViews()
         })
     }
-    
+ /*
     func getCityFromLocation(location : CLLocation) -> String {
 
         let geoCoder = CLGeocoder()
@@ -324,9 +136,9 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
             }
             
             // City
-            if let city = placeMark.addressDictionary!["City"] as? NSString {
+            if let city = placeMark.addressDictionary!["City"] as? String {
                 print(city)
-                cityCountryString.appendContentsOf(city as String)
+                self.result!.updateCity(city)
             }
             
             // Zip code
@@ -335,16 +147,16 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
             }
             
             // Country
-            if let country = placeMark.addressDictionary!["Country"] as? NSString {
+            if let country = placeMark.addressDictionary!["Country"] as? String {
                 print(country)
-                cityCountryString.appendContentsOf(", " + (country as String))
+                self.result!.updateCountry(country)
             }
 
             
         })
         return cityCountryString
-    }
-    
+    } */
+ 
     func removeWhiteSpace(var string : String) -> String {
         print("String with whitespace: \(string)")
         string = string.stringByReplacingOccurrencesOfString(" ", withString: "_")
@@ -449,13 +261,13 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         print("Reached Button Pressed")
         animateActivityIndicator()
         result?.updateAnalysisType("general")
-        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, errorString, result) in
+        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
             if success {
                 self.result = result
                 print("Image label = \(result?.labelText)")
                 self.displayResponse()
             } else {
-                self.displayError(errorString!)
+                self.displayError(error.localizedDescription)
             }
         }
     }
@@ -464,13 +276,13 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         print("Text Button Pressed")
         animateActivityIndicator()
         result?.updateAnalysisType("text")
-        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, errorString, result) in
+        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
             if success {
                 self.result = result
                 print("Image label = \(result?.labelText)")
                 self.displayResponse()
             } else {
-                self.displayError(errorString!)
+                self.displayError(error.localizedDescription)
             }
         }
         displayResponse()
@@ -481,12 +293,20 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         animateActivityIndicator()
         print("Image in landmark Button pressed: \(self.image!)")
         result?.updateAnalysisType("landmark")
-        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, errorString, result) in
+        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
             if success {
                 self.result = result
+              //  self.getCityFromLocation(CLLocation(latitude: (result!.latitude), longitude: (result!.longitude))) { () in
+          /*      var newLabelText = result?.labelText
+                print("City : \(result!.city)")
+                print("Country : \(result!.country)")
+                //newLabelText = newLabelText! + ",\(result!.city!)"
+                //newLabelText = newLabelText! + ", \(result!.country!)"
+                result?.updateLabelText(newLabelText!)
+                */
                 self.displayMapView()
             } else {
-                self.displayError(errorString!)
+                self.displayError(error.localizedDescription)
             }
         }
 
@@ -499,13 +319,13 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         print("Image in face Button pressed: \(self.image!)")
         
         result?.updateAnalysisType("face")
-        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, errorString, result) in
+        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
             if success {
                 self.result = result
                 print("Image label = \(result?.labelText)")
                 self.displayResponse()
             } else {
-                self.displayError(errorString!)
+                self.displayError(error.localizedDescription)
             }
         }
     }
