@@ -90,7 +90,11 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         
         let wikiURL = Constants.WikipediaRequestValues.wikipediaURL + removeWhiteSpace(result!.labelText!)
      //   let wikiURL = Constants.WikipediaRequestValues.wikipediaURL + result!.labelText!
-        dropPin.title = result!.labelText! + (", \((result?.country)!)")
+        if result?.country != nil {
+            dropPin.title = result!.labelText! + (", \((result?.country)!)")
+        } else {
+            dropPin.title = result!.labelText!
+        }
         dropPin.subtitle = wikiURL
         performUIUpdatesOnMain ({
             self.textView.hidden = true
@@ -267,22 +271,24 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
                 print("Image label = \(result?.labelText)")
                 self.displayResponse()
             } else {
-                self.displayError(error.localizedDescription)
+                self.displayError(error!.localizedDescription)
             }
         }
     }
     
     @IBAction func textButtonPressed(sender: AnyObject) {
+
         print("Text Button Pressed")
         animateActivityIndicator()
         result?.updateAnalysisType("text")
+        print("Activity indicator started")
         GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
             if success {
                 self.result = result
                 print("Image label = \(result?.labelText)")
                 self.displayResponse()
             } else {
-                self.displayError(error.localizedDescription)
+                self.displayError(error!.localizedDescription)
             }
         }
         displayResponse()
@@ -296,17 +302,9 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
             if success {
                 self.result = result
-              //  self.getCityFromLocation(CLLocation(latitude: (result!.latitude), longitude: (result!.longitude))) { () in
-          /*      var newLabelText = result?.labelText
-                print("City : \(result!.city)")
-                print("Country : \(result!.country)")
-                //newLabelText = newLabelText! + ",\(result!.city!)"
-                //newLabelText = newLabelText! + ", \(result!.country!)"
-                result?.updateLabelText(newLabelText!)
-                */
                 self.displayMapView()
             } else {
-                self.displayError(error.localizedDescription)
+                self.displayError(error!.localizedDescription)
             }
         }
 
@@ -325,32 +323,9 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
                 print("Image label = \(result?.labelText)")
                 self.displayResponse()
             } else {
-                self.displayError(error.localizedDescription)
+                self.displayError(error!.localizedDescription)
             }
         }
     }
-    
-    @IBAction func translatedButtonPressed(sender: AnyObject) {
-        print("Translate Button Pressed")
-        let stringToTranslate = "Hola, soy Robert. Pero creo que si"
-        let language = "es"
-        performUIUpdatesOnMain ({
-            self.activityIndicator.hidden = false
-            self.activityIndicator.startAnimating()
-            self.textView.hidden = false
-            self.textView.text = "Text being translated being analysed..."
-            self.textView.reloadInputViews()
-        })
-        //print("Image in face Button pressed: \(self.image!)")
-        GoogleClient.sharedInstance().requestTranslation(stringToTranslate, language: language) { (success, errorString, result) in
-            if success {
-                self.displayResponse()
-            } else {
-                self.displayError(errorString!)
-            }
-        }
-    }
-    
-    
 }
 

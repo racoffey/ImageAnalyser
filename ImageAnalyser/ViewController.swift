@@ -83,7 +83,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]){
         //Assign image from image picker to this class, scaling it to fit in the image view. Share and resize buttons are enabled and picker controller is dismissed.
         if let image = info["UIImagePickerControllerOriginalImage"] as? UIImage {
-            self.image = image
+            //self.image = image
+            print("Image: \(image)")
             let imageData = GoogleClient.sharedInstance().base64EncodeImageToNSData(image)
             result = AnalysisResult(image: imageData, resultNumber: resultNumber, context: sharedContext)
             print("ResultNumber = \(resultNumber)")

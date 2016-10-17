@@ -199,14 +199,9 @@
                                         </connections>
                                     </barButtonItem>
                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="zX7-hh-tGa"/>
-                                    <barButtonItem title="Tran" id="4GH-Ul-IFh">
+                                    <barButtonItem title="Text" id="J7o-WO-i7c">
                                         <connections>
-                                            <action selector="translatedButtonPressed:" destination="rug-xe-kUf" id="355-hK-3BZ"/>
-                                        </connections>
-                                    </barButtonItem>
-                                    <barButtonItem title="Text" id="uOC-Hq-ThH">
-                                        <connections>
-                                            <action selector="textButtonPressed:" destination="rug-xe-kUf" id="Qtr-cL-CmS"/>
+                                            <action selector="textButtonPressed:" destination="rug-xe-kUf" id="i3y-iA-tyW"/>
                                         </connections>
                                     </barButtonItem>
                                 </items>
@@ -236,7 +231,7 @@
                         <outlet property="imageView" destination="zdd-2u-uPw" id="jmF-x0-SIE"/>
                         <outlet property="landmarkButton" destination="UG6-5Q-YmR" id="vX1-ZL-KU8"/>
                         <outlet property="mapView" destination="33C-Gf-Jb3" id="wea-dC-RSQ"/>
-                        <outlet property="textButton" destination="uOC-Hq-ThH" id="EH9-6F-XIR"/>
+                        <outlet property="textButton" destination="J7o-WO-i7c" id="hQt-g4-DSO"/>
                         <outlet property="textView" destination="PIf-LK-fdu" id="3HO-Kd-7m3"/>
                     </connections>
                 </viewController>
