@@ -10,8 +10,16 @@ import Foundation
 import UIKit
 import MapKit
 
+// The AnalysisSelectorViewController presents the image selected by the user for analysis and 4 analysis options.
+// Each option uses the corresponding Google Vision API method.
+// "General" analysis makes a general analysis of the image and provides keywords.
+// "Face" analysis performs both general and face analyses of the image, providing both content and emotion information on an image containing faces.
+// "Landmark" returns the name, country and wikipedia link presented as pin + annotation on a map for any landmark found in the image.
+// "Text" returns the text content of the image. If the text language is not English it is automatically translated to English.
+
 class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegate {
     
+    //Assign variable for image
     var image: UIImage?
     
     // Instantiate Analysis Result
@@ -20,6 +28,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
     // Get context from shared instance from CoreDataStackManager
     var sharedContext = CoreDataStackManager.sharedInstance().context
 
+    //Outlets
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var generalButton: UIBarButtonItem!
     @IBOutlet weak var textButton: UIBarButtonItem!
@@ -32,12 +41,19 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
 
     override func viewWillAppear(animated: Bool) {
         
+        // Extract image from result in Core Data, size and present.
         image = UIImage(data: (result?.image)!)
         imageView.contentMode = UIViewContentMode.ScaleAspectFit
         imageView.image = image
+        
+        //Prepare activity indicator and other view settings
         activityIndicator.hidden = true
         activityIndicator.hidesWhenStopped = true
+        textView.hidden = false
+        mapView.hidden = true
 
+        // If analaysis has already been performed present the respective, text or map view in case of landmark analysis.
+        // Otherwise inform use to select wanted analysis type.
         if result?.labelText != nil {
             if result?.analysisType == "landmark" {
               displayMapView()
@@ -48,23 +64,13 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
             textView.text = "Select analysis type"
         }
 
-        textView.hidden = false
-        mapView.hidden = true
-
+        // Assign map view delegate to this class
+        self.mapView.delegate = self
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-        self.mapView.delegate = self
-
-
-
-    }
 
     //Present message to user
     func displayError(error: String, debugLabelText: String? = nil) {
-        print(error)
         
         // Show error to user using Alert Controller
         let alert = UIAlertController(title: "Information", message: error, preferredStyle: UIAlertControllerStyle.Alert)
@@ -72,8 +78,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         self.presentViewController(alert, animated: true, completion: nil)
     }
     
-
-    
+    // Present textual analysis response to the user
     func displayResponse(){
         performUIUpdatesOnMain ({
             self.activityIndicator.stopAnimating()
@@ -83,29 +88,38 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         })
     }
     
+    // Present landmark response to user as pin and annotation including wikipedia link on map
     func displayMapView() {
+        
+        // Prepare pin annotation and map location
         let dropPin = MKPointAnnotation()
         dropPin.coordinate = (result?.coordinate)!
         let mapLocation = CLLocation(latitude: (result!.latitude), longitude: (result!.longitude))
         
+        // Create Wikipedia URL link using by appending the landmark name as a search criteria
         let wikiURL = Constants.WikipediaRequestValues.wikipediaURL + removeWhiteSpace(result!.labelText!)
-     //   let wikiURL = Constants.WikipediaRequestValues.wikipediaURL + result!.labelText!
+        
+        // If landmark country is included in result display it in the annotation title
         if result?.country != nil {
             dropPin.title = result!.labelText! + (", \((result?.country)!)")
         } else {
             dropPin.title = result!.labelText!
         }
+        
+        // Include Wikipedia link in annotation subtitle
         dropPin.subtitle = wikiURL
+        
+        //Display map to end user
         performUIUpdatesOnMain ({
             self.textView.hidden = true
             self.mapView.hidden = false
-            //self.mapView.setCenterCoordinate(location!, animated: true)
             self.centerMapOnLocation(mapLocation)
             self.mapView.addAnnotation(dropPin)
             self.mapView.selectAnnotation(dropPin, animated: true)
         })
     }
     
+    // Start animating activity indicator and inform user analysis is underway
     func animateActivityIndicator(){
         performUIUpdatesOnMain ({
             self.activityIndicator.hidden = false
@@ -115,54 +129,12 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
             self.textView.reloadInputViews()
         })
     }
- /*
-    func getCityFromLocation(location : CLLocation) -> String {
-
-        let geoCoder = CLGeocoder()
-        var cityCountryString = ""
-        geoCoder.reverseGeocodeLocation(location, completionHandler: { (placemarks, error) -> Void in
-            // Place details
-            var placeMark: CLPlacemark!
-            print("Placemark = \(placeMark)")
-            placeMark = placemarks?[0]
-            
-            // Address dictionary
-            print(placeMark.addressDictionary)
-            
-            // Location name
-            if let locationName = placeMark.addressDictionary!["Name"] as? NSString {
-                print(locationName)
-            }
-            
-            // Street address
-            if let street = placeMark.addressDictionary!["Thoroughfare"] as? NSString {
-                print(street)
-            }
-            
-            // City
-            if let city = placeMark.addressDictionary!["City"] as? String {
-                print(city)
-                self.result!.updateCity(city)
-            }
-            
-            // Zip code
-            if let zip = placeMark.addressDictionary!["ZIP"] as? NSString {
-                print(zip)
-            }
-            
-            // Country
-            if let country = placeMark.addressDictionary!["Country"] as? String {
-                print(country)
-                self.result!.updateCountry(country)
-            }
-
-            
-        })
-        return cityCountryString
-    } */
  
+    //ASSISTING FUNCTIONS
+    
+    
+    // Remove whitespace from string
     func removeWhiteSpace(var string : String) -> String {
-        print("String with whitespace: \(string)")
         string = string.stringByReplacingOccurrencesOfString(" ", withString: "_")
         if string.characters.first == "_" {
             string.removeAtIndex(string.startIndex)
@@ -170,14 +142,15 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         if string.characters.last == "_" {
             string.removeAtIndex(string.endIndex)
         }
-        print("String with no whitespace: \(string)")
         return string
     }
     
+    
+    //MAP FUNCTIONS
+    
+    //Prepare annotation view
     func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
         
-        //Use Student Location as annotation object, create annotation view and assign queued annotations if possible
-        //     if let annotation = annotation as? StudentLocation {
         let identifier = "pin"
         var view: MKPinAnnotationView
         if let dequeuedView = mapView.dequeueReusableAnnotationViewWithIdentifier(identifier)
@@ -185,7 +158,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
             dequeuedView.annotation = annotation
             view = dequeuedView
         } else {
-            //If queued annotations not availabel then create new with call out and accessory
+            //If queued annotations not available then create new with call out and accessory
             view = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
             view.canShowCallout = true
             view.calloutOffset = CGPoint(x: -10, y: 10)
@@ -193,38 +166,29 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         }
         //Return the annotation view
         return view
-        //    }
-        //    return nil
     }
     
-    //Set map view region
+    
+    // Set map view region
     func centerMapOnLocation(location: CLLocation) {
         let coordinateRegion = MKCoordinateRegionMakeWithDistance(location.coordinate,
                                                                   Constants.Map.RegionRadius * 2.0, Constants.Map.RegionRadius * 2.0)
         mapView.setRegion(coordinateRegion, animated: true)
     }
     
+    // Stop animating activity indicator when map is rendered
     func mapViewDidFinishRenderingMap(mapView: MKMapView, fullyRendered: Bool){
         activityIndicator.stopAnimating()
-
     }
     
-    //If call out it tapped then open URL link in Student Location
-    func mapView(mapView: MKMapView!, annotationView view: MKAnnotationView!,
-                 calloutAccessoryControlTapped control: UIControl!) {
-        
-        
-        //let annotation = view.annotation
-        print("Call out was pressed")
-        print("URL =  \(view.annotation?.subtitle!)")
-        //let wikiURL = (view.annotation?.subtitle!)! as String  https://en.wikipedia.org/wiki/Skógafoss
+    //If call out is tapped then open Wikipedia URL link in subtitle
+    func mapView(mapView: MKMapView, annotationView view: MKAnnotationView,
+                 calloutAccessoryControlTapped control: UIControl) {
+
         let wikiURL = ((view.annotation?.subtitle!)! as String).stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!
-        print(wikiURL)
         if let url = NSURL(string: wikiURL) {
-            print("Url being opened = \(url)")
             UIApplication.sharedApplication().openURL(url, options: [ : ]) { (success) in
                 if success {
-                    print ("URL opened")
                 } else {
                     self.displayError("Cannot present web page")
                 }
@@ -232,43 +196,22 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         } else {
             displayError("Cannot present web page")
         }
-/*        print("Url being opened = \(url)")
-        UIApplication.sharedApplication().openURL(url!, options: [ : ]) { (success) in
-            if success {
-                print ("URL opened")
-            } else {
-                self.displayError("Cannot present web page")
-            }
-        }*/
-/*
-        do {
-            let url = try NSURL(fileURLWithPath: wikiURL)
-            print("Url being opened = \(url)")
-            UIApplication.sharedApplication().openURL(url)
-        } catch is ErrorType {
-            displayError("Cannot present web page")
-        }
-        
-*/
-        
-        //Check URL is properly formatted and if not present error on map
-        /*if let url = NSURL(fileURLWithPath: wikiURL) {
-            print("Url being opened = \(url)")
-            UIApplication.sharedApplication().openURL(url)
-        }
-        else {
-            displayError("Cannot present web page")
-        }*/
     }
-
+    
+    
+    //ACTIONS
+    
+    // "General" analysis selected
     @IBAction func generalButtonPressed(sender: AnyObject) {
-        print("Reached Button Pressed")
         animateActivityIndicator()
+        
+        //Store analysis type
         result?.updateAnalysisType("general")
+        
+        //Initiate analysis of the image and present result
         GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
             if success {
                 self.result = result
-                print("Image label = \(result?.labelText)")
                 self.displayResponse()
             } else {
                 self.displayError(error!.localizedDescription)
@@ -276,16 +219,17 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         }
     }
     
+    // "Text" analysis selected
     @IBAction func textButtonPressed(sender: AnyObject) {
-
-        print("Text Button Pressed")
         animateActivityIndicator()
+        
+         //Store analysis type
         result?.updateAnalysisType("text")
-        print("Activity indicator started")
+        
+        //Initiate analysis of the image and present result
         GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
             if success {
                 self.result = result
-                print("Image label = \(result?.labelText)")
                 self.displayResponse()
             } else {
                 self.displayError(error!.localizedDescription)
@@ -294,11 +238,14 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         displayResponse()
     }
     
+    // "Landmark" analysis selected
     @IBAction func landmarkButtonPressed(sender: AnyObject) {
-        print("Landmark Button Pressed")
         animateActivityIndicator()
-        print("Image in landmark Button pressed: \(self.image!)")
+
+        //Store analysis type
         result?.updateAnalysisType("landmark")
+        
+        //Initiate analysis of the image and present result on map in landmark case.
         GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
             if success {
                 self.result = result
@@ -310,17 +257,17 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
 
     }
     
-    
+    // "Face" analysis selected
     @IBAction func faceButtonPressed(sender: AnyObject) {
-        print("Face Button Pressed")
         animateActivityIndicator()
-        print("Image in face Button pressed: \(self.image!)")
-        
+
+        //Store analysis type
         result?.updateAnalysisType("face")
+        
+        //Initiate analysis of the image and present result
         GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
             if success {
                 self.result = result
-                print("Image label = \(result?.labelText)")
                 self.displayResponse()
             } else {
                 self.displayError(error!.localizedDescription)

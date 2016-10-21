@@ -299,7 +299,7 @@ class GoogleClient : NSObject {
                     if success{
                         print("Translation successful : \(textTranslation)")
                         result.updateTranslatedText(textTranslation as! String)
-                        let newLabelText = result.imageText! + "/n TRANSLATED TEST: \n" + result.translatedText! as! String
+                        let newLabelText = "\(result.imageText!) \n" + " TRANSLATED TEXT: \n" + result.translatedText! as! String
                         result.updateLabelText(newLabelText)
                         completionHandlerForSession(success: true, error: nil, result: result)
                     }
@@ -307,12 +307,6 @@ class GoogleClient : NSObject {
                         completionHandlerForSession(success: false, error: error, result: nil)
                     }
                 }
-
-               /* while result.translatedText == nil{
-                    delay(0.5)
-                    print("Waiting")
-                }
-                completionHandlerForSession(success: true, error: nil, result: result)*/
             } else {
                 completionHandlerForSession(success: true, error: nil, result: result)
             }
