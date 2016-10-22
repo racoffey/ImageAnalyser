@@ -10,10 +10,10 @@ import Foundation
 import UIKit
 import CoreData
 import MapKit
-//import SwiftyJSON
 
 
-// Flickr API client
+
+// Client for handling Google Vision API and Google Translate API interactions and returning a prepared response
 
 class GoogleClient : NSObject {
     
@@ -21,22 +21,19 @@ class GoogleClient : NSObject {
     var session = NSURLSession.sharedSession()
     
     
-
+    // Request image analysis and return a result object populated with information from JSON response
     func requestImageAnalysis(result : AnalysisResult, completionHandlerForSession: (success: Bool, error: NSError?, result: AnalysisResult?) -> Void) {
-        let imageData = result.image?.base64EncodedStringWithOptions(.EncodingEndLineWithCarriageReturn)
-        //print("Reached request image analaysis: \(image)")
-        //let imageData = base64EncodeImage(image)
-        let data = NSData(base64EncodedString: imageData!, options: .IgnoreUnknownCharacters)
         
+        // Extract image from result object and encode to required JSON format
+        let imageData = result.image?.base64EncodedStringWithOptions(.EncodingEndLineWithCarriageReturn)
+ 
+        // Extract analysisType from result object
         let analysisType = result.analysisType!
         
-        //let imageData = image
+        // Initialise jsonBody
         var jsonBody : [String : AnyObject] = [:]
-        var responses = [""]
         
-
-        
-        // Build our API request
+        // Build the Google Vision API request depending on the selected analysisType
         let method = ""
         let parameters : [String: AnyObject] = [Constants.GoogleRequestKeys.ApiKey : Constants.GoogleRequestValues.ApiKey as AnyObject]
         
@@ -62,14 +59,6 @@ class GoogleClient : NSObject {
                         "content": imageData!
                     ],
                     "features": [
-                        /*[
-                            "type": "LABEL_DETECTION",
-                            "maxResults": 10
-                        ],
-                         [
-                         "type": "FACE_DETECTION",
-                         "maxResults": 10
-                         ],*/
                          [
                          "type": "TEXT_DETECTION",
                          "maxResults": 0
@@ -85,14 +74,6 @@ class GoogleClient : NSObject {
                         "content": imageData!
                     ],
                     "features": [
-                        /*[
-                         "type": "LABEL_DETECTION",
-                         "maxResults": 10
-                         ],
-                         [
-                         "type": "FACE_DETECTION",
-                         "maxResults": 10
-                         ],*/
                         [
                             "type": "LANDMARK_DETECTION",
                             "maxResults": 10
@@ -115,11 +96,7 @@ class GoogleClient : NSObject {
                          [
                          "type": "FACE_DETECTION",
                          "maxResults": 10
-                         ] /*,
-                        [
-                            "type": "LANDMARK_DETECTION",
-                            "maxResults": 10
-                        ]*/
+                         ]
                     ]
                 ]
             ]
@@ -127,64 +104,62 @@ class GoogleClient : NSObject {
         default: break
         }
 
+        // Execute HTTP POST transaction
         taskForPOSTMethod(method, parameters: parameters, jsonBody: jsonBody as [String : AnyObject], type: "vision") { (results, error) in
             
             // Handle error case
             if error!.code == 1 {
-                print("Error when returning from POST method.")
-                print("Error: \(error?.localizedDescription)")
                 completionHandlerForSession(success: true, error: error!, result: result)
             } else {
-                //Put results into a data object, extract result information into Annotations object which is returned
-
-                let resultsDict = results as! [String : AnyObject]
-                print("ResultsDict: \(resultsDict)")
-                let responses = resultsDict["responses"] as! [AnyObject]
-                print("Responses: \(responses)")
-                let annotations = responses[0]
-                print("Annotations : \(annotations)")
                 
+                //Extract the annotations from the JSON response
+                let resultsDict = results as! [String : AnyObject]
+                let responses = resultsDict["responses"] as! [AnyObject]
+                let annotations = responses[0]
+
+                // Transfer received JSON response annotations into result object and return result
                 self.prepareResponse(annotations, result: result) { (success, error, result) in
                     if success {
-                            print("PrepareResponse returned successfully")
-                            completionHandlerForSession(success: true, error: nil, result: result)
+                        completionHandlerForSession(success: true, error: nil, result: result)
                     } else {
-                        print("PrepareResponse unsuccessfull")
-                            completionHandlerForSession(success: false, error: error!, result: nil)
+                        completionHandlerForSession(success: false, error: error!, result: nil)
                     }
                 }
             }
         }
     }
     
-    
+    // Transfer received JSON response annotations into AnalysisResult object
     func prepareResponse(response : AnyObject, result : AnalysisResult, completionHandlerForSession: (success : Bool, error : NSError?, result : AnalysisResult?) -> Void) {
+        
+        // Instantiate labelText
         var labelText : String = ""
+        
+        // Set default language as English
         var language = "en"
+        
+        // Instantiate counters for cycling through annotations
         var count = 0
         var number = 0
-        //var location = CLLocationCoordinate2D?()
+        
+        // Assign map location variable
         var location = CLLocation()
-        //var landmark = false
-        //let error = NSError(domain: "ImagerAnalyser.GoogleClient.prepareResponse", code: 0, userInfo: [:])
-        
-        //let response = annotations as! [String : String]
-        print("Reponse in prepareResponse : \(response)")
-        
+    
+        // Check JSON response dictionary for labelAnnotations and if found extract relevant labels
         if (response["labelAnnotations"]!) != nil {
-            var imageLabels : String = ""
+            
+            // Instantiate String for image labels and add heading
+            var imageLabels : String = "IMAGE LABELS\n\n"
+            
+            //Extract labelAnnotations array from response dictionary
             let labelAnnotations = response["labelAnnotations"] as! [AnyObject]
-            print("LabelAnnotations in displayResponse : \(labelAnnotations)")
-            print("Number of items in labelAnnotations = \(labelAnnotations.count)")
+
+            // Cycle through labelAnnotations array adding text to the imageLabels string
             if labelAnnotations.count != 0 {
                 count  = 0
                 number = labelAnnotations.count
-                print("Number : \(number)")
-                print(labelAnnotations)
-                imageLabels = "IMAGE LABELS:\n"
+                
                 while count < number {
-                    print("Count : \(count)")
-                    print("Label text : \(imageLabels)")
                     let dict = labelAnnotations[count]
                     let str = dict["description"]!
                     
@@ -196,124 +171,126 @@ class GoogleClient : NSObject {
                     count += 1
                 }
             }
+            
+            // Assign imageLabels to labelText for presentation to end user
             labelText = imageLabels
+            
+            //Update result object
             result.updateImageText(imageLabels)
-            print(labelText)
-        } else {
-            print("Response contains no label annotations")
+
         }
         
+        // Check JSON response dictionary for textAnnotations and if found extract text.
+        // If text is not English then automatically provide an English translation of the text
         if (response["textAnnotations"]!) != nil {
-            let textAnnotations = response["textAnnotations"] as! [AnyObject]
-            print("TextAnnotations in displayResponse : \(textAnnotations)")
-            print("Number of items in textAnnotations = \(textAnnotations.count)")
             
-            var imageText = "IMAGE TEXT:\n"
-            let dict = textAnnotations[count]
-            let str = dict["description"]! as! String
+            //Instantiate string for image text and add heading
+            var imageText = "IMAGE TEXT\n\n"
+            
+            //Extract textAnnotations from response dictionary
+            let textAnnotations = response["textAnnotations"] as! [AnyObject]
+            
+            let dict = textAnnotations[0]
+            let text = dict["description"]! as! String
             language = dict["locale"]! as! String
             
-            imageText.appendContentsOf(" \(str)")
-            
-      /*      while result.translatedText == nil {
-                delay(1.0)
-                print("Waiting")
-            }*/
+            // Add text to imageText string and update result object
+            imageText.appendContentsOf(text)
             result.updateImageText(imageText)
-            labelText.appendContentsOf(imageText)
-            print(labelText)
-        } else {
-            print("No text annotations in response")
-        }
-        
-        if (response["landmarkAnnotations"]!) != nil {
-            let landmarkAnnotations = response["landmarkAnnotations"] as! [AnyObject]
-            print("LandmarkAnnotations in displayResponse : \(landmarkAnnotations)")
-            
-            //labelText = "LANDMARK: "
-            let dict = landmarkAnnotations[count]
-            let landmarkLabel = dict["description"]! as! String
-            result.updateLandmarkLabel(landmarkLabel)
-            labelText.appendContentsOf(" \(landmarkLabel)")
-            print(labelText)
-            
-            let locations = dict["locations"] as! [AnyObject]
-            print("Locations = \(locations)")
-            let latLng = locations[0]
-            print("Latlng = \(latLng)")
-            let coordinates = latLng["latLng"]!
-            print("Coordinates = \(coordinates)")
-            let latitude = coordinates!["latitude"] as! Double
-            let longitude = coordinates!["longitude"] as! Double
-            result.updateCoodinates(latitude, longitude: longitude)
-            print("latitude = \(latitude)")
-            print("longitude = \(longitude)")
-            //location = CLLocationCoordinate2DMake(latitude, longitude)
-            location = CLLocation(latitude: latitude, longitude: longitude)
 
-           // landmark = true
-            
-        } else {
-            print("No landmark annotations in response")
-        }
-        
-        if (response["faceAnnotations"]!) != nil {
-            let faceAnnotations = response["faceAnnotations"] as! [AnyObject]
-            print("FaceAnnotations in displayResponse : \(faceAnnotations)")
-            
-            //labelText = "LANDMARK: "
-            let dict = faceAnnotations[0]
-            let angerLikelihood = dict["angerLikelihood"]!
-            labelText.appendContentsOf(" \n\n EMOTIONS: \n Anger: \(angerLikelihood!)")
-            let joyLikelihood = dict["joyLikelihood"]!
-            labelText.appendContentsOf(" \n Joy: \(joyLikelihood!)")
-            let sorrowLikelihood = dict["sorrowLikelihood"]!
-            labelText.appendContentsOf(" \n Sorrow: \(sorrowLikelihood!)")
-            let surpriseLikelihood = dict["surpriseLikelihood"]!
-            labelText.appendContentsOf(" \n Surprise: \(surpriseLikelihood!)")
-            print(labelText)
-            
-        } else {
-            print("No face annotations in response")
-        }
-        
-        if labelText == "" {
-            labelText = "Analysis yeilded no labels for this image."
-        }
-
-        result.updateLabelText(labelText)
-    
-        switch result.analysisType! {
-        case "landmark":
-            getCityAndCountry(location, result: result)
-            while result.country == nil {
-            }
-            completionHandlerForSession(success: true, error: nil, result: result)
-            
-        case "text":
-            print("Text case selected")
-            print("Language = \(language)")
+            // Language is not English then translate text to English
             if language != "en" {
-                print("Language not English")
+
+                // Request transation to English and return result when translation has been received
                 requestTranslation(result.imageText!, language: language) { (success, error, textTranslation) in
                     if success{
-                        print("Translation successful : \(textTranslation)")
+                        
+                        // Update result object with translated text and new Label Text for user display
                         result.updateTranslatedText(textTranslation as! String)
-                        let newLabelText = "\(result.imageText!) \n" + " TRANSLATED TEXT: \n" + result.translatedText! as! String
+                        let newLabelText = "\(result.imageText!) \n" + " TRANSLATED TEXT\n\n" + result.translatedText! 
                         result.updateLabelText(newLabelText)
                         completionHandlerForSession(success: true, error: nil, result: result)
                     }
                     else {
+                        //Return result
                         completionHandlerForSession(success: false, error: error, result: nil)
                     }
                 }
             } else {
+                // Assign imageText content to display text
+                labelText.appendContentsOf(imageText)
+                
+                // Return result
                 completionHandlerForSession(success: true, error: nil, result: result)
             }
-        default:
-            
-            completionHandlerForSession(success: true, error: nil, result: result)
         }
+        
+        
+        // Check JSON response dictionay for landmarkAnnotations.  
+        // If found extract landmark name and location, plot on a map with annotation showing country and Wikipedia link
+        if (response["landmarkAnnotations"]!) != nil {
+            
+            // Extract landmarkAnnotations from response dictionary
+            let landmarkAnnotations = response["landmarkAnnotations"] as! [AnyObject]
+            let dict = landmarkAnnotations[0]
+            
+            // Extract landmark name and location
+            let landmarkLabel = dict["description"]! as! String
+            let locations = dict["locations"] as! [AnyObject]
+            let latLng = locations[0]
+            let coordinates = latLng["latLng"]!
+            let latitude = coordinates!["latitude"] as! Double
+            let longitude = coordinates!["longitude"] as! Double
+            
+            // Update result plus labelText and location
+            result.updateLandmarkLabel(landmarkLabel)
+            result.updateCoodinates(latitude, longitude: longitude)
+            labelText.appendContentsOf(landmarkLabel)
+            location = CLLocation(latitude: latitude, longitude: longitude)
+            
+            // Get the city and country for the landmark and when obtained return the result
+            getCityAndCountry(location, result: result) { (success, error, result) in
+                if error == nil {
+                    completionHandlerForSession(success: true, error: nil, result: result)
+                } else {
+                    completionHandlerForSession(success: false, error: error, result: nil)
+                }
+            }
+        }
+        
+        // Check JSON response for faceAnnotations and if found extract relevant content
+        if (response["faceAnnotations"]!) != nil {
+            
+            //Instantiate string for faceLabels and add heading
+            var faceLabels = "\n\n EMOTIONS \n\n"
+            
+            //Extract faceLabels from JSON response
+            let faceAnnotations = response["faceAnnotations"] as! [AnyObject]
+            let dict = faceAnnotations[0]
+            let angerLikelihood = dict["angerLikelihood"]!
+            faceLabels.appendContentsOf(" \n\n EMOTIONS \n\n Anger: \(angerLikelihood!)")
+            let joyLikelihood = dict["joyLikelihood"]!
+            faceLabels.appendContentsOf(" \n Joy: \(joyLikelihood!)")
+            let sorrowLikelihood = dict["sorrowLikelihood"]!
+            faceLabels.appendContentsOf(" \n Sorrow: \(sorrowLikelihood!)")
+            let surpriseLikelihood = dict["surpriseLikelihood"]!
+            faceLabels.appendContentsOf(" \n Surprise: \(surpriseLikelihood!)")
+            
+            // Add faceLabels Labels to labelText for presentation to end user
+            labelText.appendContentsOf(faceLabels)
+            
+            //Update result object
+            result.updateFaceLabels(faceLabels)
+        }
+            
+        if labelText == "" {
+            labelText = "Analysis yeilded no labels for this image."
+        }
+        
+        // Update result with final labelText for end user display and return result
+        result.updateLabelText(labelText)
+        completionHandlerForSession(success: true, error: nil, result: result)
+
     }
 
     
@@ -362,114 +339,7 @@ class GoogleClient : NSObject {
             }
         }
     }
-  /*
-    func parseText( text : String) {
-        var text = text
-        let charSet = NSCharacterSet(charactersIn: ";=")
-        var newText : String = ""
-        
-        for chr in text.characters {
-            if chr == "\"" {
-                newText + ""
-                print(newText)
-            }
-            else {
-                newText.append(chr)
-            }
-        }
-        text = newText
-        
-        var array = text.componentsSeparatedByCharactersInSet(charSet)
-        
-        for var item in array{
-            print(item)
-            let index = array.indexOf(item)
-            newText = ""
-            for chr in item.characters {
-                if (!(chr >= "a" && chr <= "z") && !(chr >= "A" && chr <= "Z") && !(chr >= "0" && chr <= "9") && !(chr == ".")  ) {
-                    print("Reached here")
-                    print(chr)
-                }
-                else {
-                    print(chr)
-                    newText.append(chr)
-                    print(newText)
-                }
-            }
-            print(index)
-            array.removeAtIndex(index!)
-            array.insert(newText, atIndex: index!)
-            
-        }
-        print(array)
-    }
- */
-    
-    
-/*    // Request photos related to Pin location from Flickr
-    func getPhotos(context: NSManagedObjectContext, pin: Pin, completionHandlerForSession: (success: Bool, errorString: String?) -> Void) {
-        
-        // General random page number between 1 and maxPages
-        let page = Int(arc4random_uniform(Constants.General.maxPages) + 1)
-        
-        //Establish parameters for GET request
-        let method = ""
-        let parameters: [String: AnyObject] =
-            [Constants.FlickrRequestKeys.ApiKey : Constants.FlickrRequestValues.ApiKey,
-             Constants.FlickrRequestKeys.DataFormat : Constants.FlickrRequestValues.DataFormat,
-             Constants.FlickrRequestKeys.Extras : Constants.FlickrRequestValues.Extras,
-             Constants.FlickrRequestKeys.NoJsonCallBack : Constants.FlickrRequestValues.NoJsonCallBack,
-             Constants.FlickrRequestKeys.PerPage : Constants.FlickrRequestValues.PerPage,
-             Constants.FlickrRequestKeys.SafeSearch : Constants.FlickrRequestValues.SafeSearch,
-             Constants.FlickrRequestKeys.Method : Constants.FlickrRequestValues.Method,
-             Constants.FlickrRequestKeys.Latitude : pin.latitude!,
-             Constants.FlickrRequestKeys.Longitude : pin.longitude!,
-             Constants.FlickrRequestKeys.Page : page]
-        
-        
-        //Execute GET method
-        taskForGETMethod(method, parameters: parameters) { (results, error) in
-            
-            // Handle error case
-            if error != nil {
-                completionHandlerForSession(success: false, errorString: "Failed to get photos. \(error)")
-            } else {
-                //Put results into a data object, extract photos into photoResults and then individual photos into Photos array
-                var resultsDict = results as! [String: AnyObject]
-                let photoResults = resultsDict["photos"] as! [String: AnyObject]
-                let photosArray = photoResults["photo"] as! [AnyObject]
-                if photosArray.endIndex == 0 {
-                    completionHandlerForSession(success: false, errorString: "No photos are available for this location!")
-                }
-                
-                // Create Core Data Photo object for each photo in array in memory
-                for item in photosArray {
-                    let dict = item as! [String: AnyObject]
-                    
-                    let photo = Photo(title: dict["title"] as! String, url_m: dict["url_m"] as! String, context: context)
-                    
-                    // Define parent Pin in Photo object
-                    photo.pin = pin
-                    
-                    // Download images on background thread and update Core Data Photo object when downloaded
-                    performUIUpdatesOnBackground({
-                        if let url  = NSURL(string: photo.url_m!),
-                            data = NSData(contentsOfURL: url)
-                        {
-                            photo.image = data
-                        }
-                    })
-                }
-                
-                // Save changes to Core Data
-                CoreDataStackManager.sharedInstance().save()
-                
-                // Successfully complete session
-                completionHandlerForSession(success: true, errorString: nil)
-            }
-        }
-    }
-*/
+ 
     
     // POST method
     func taskForPOSTMethod(method: String, parameters: [String:AnyObject], jsonBody: [String: AnyObject], type: String, completionHandlerForPOST: (AnyObject?, NSError?) -> Void) -> NSURLSessionDataTask {
@@ -479,6 +349,8 @@ class GoogleClient : NSObject {
         var parameters = parameters
         var request = NSMutableURLRequest()
         
+        // Build request using different parameters depending if the Google Vision or Translate API is being used.
+        // X-HTTP-Method-Override GET is required for Translate API.
         switch type {
         case "translate":
             request = NSMutableURLRequest(URL: parseTranslateURLFromParameters(parameters, withPathExtension: method) as NSURL)
@@ -488,11 +360,10 @@ class GoogleClient : NSObject {
         default:
             break
         }
-
+        
         request.HTTPMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue(NSBundle.mainBundle().bundleIdentifier ?? "",forHTTPHeaderField: "X-Ios-Bundle-Identifier" )
-        //request.HTTPBody = jsonBody.dataUsingEncoding(NSUTF8StringEncoding)
         request.HTTPBody = try! NSJSONSerialization.dataWithJSONObject(jsonBody, options: [])
         print("Request : \(request)")
         print("All HTTP header fields : \(request.allHTTPHeaderFields)")
@@ -540,97 +411,11 @@ class GoogleClient : NSObject {
 
     
  
-    // GET method
-    func taskForGETMethod(method: String, var parameters: [String:AnyObject], jsonBody: [String: AnyObject], type: String, completionHandlerForGET: (result: AnyObject, error: NSError) -> Void) -> NSURLSessionDataTask {
-        
-        var parameters = parameters
-        //var request = NSMutableURLRequest()
-                
-                
-        //Construct the URL request using input parameters
-        let request = NSMutableURLRequest(URL: parseTranslateURLFromParameters(parameters, withPathExtension: method))
-        
-        request.HTTPMethod = "GET"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue(NSBundle.mainBundle().bundleIdentifier ?? "",forHTTPHeaderField: "X-Ios-Bundle-Identifier" )
-        //request.HTTPBody = jsonBody.dataUsingEncoding(NSUTF8StringEncoding)
-        request.HTTPBody = try! NSJSONSerialization.dataWithJSONObject(jsonBody, options: [])
-        print("Request : \(request)")
-        print("All HTTP header fields : \(request.allHTTPHeaderFields)")
-            
-                
-        //Prepare the request task
-        let task = session.dataTaskWithRequest(request as NSURLRequest) { (data, response, error) in
-            
-            print("Response: \(response)")
-            print("Error: \(error)")
-            print("Data: \(data)")
-            
-            func sendError(error: String) {
-                print("Error : \(error)")
-                let userInfo = [NSLocalizedDescriptionKey : error]
-                completionHandlerForGET(result: "", error: NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
-            }
-            
-            //Was there an error?
-            guard (error == nil) else {
-                sendError("The HTTP GET request failed. Check network connection!")
-                return
-            }
-            
-            // GUARD: Did we get a successful 2XX response?
-            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
-                //self.convertDataWithCompletionHandler(data!, completionHandlerForConvertData: completionHandlerForGET)
-                sendError("Your request returned a status code other than 2xx!")
-                return
-            }
-            
-            // GUARD: Was there any data returned?
-            guard let data = data else {
-                sendError("No data was returned by the request!")
-                return
-            }
-            
-            // Parse the data and use the data and return the result
-            self.convertDataWithCompletionHandler(data, completionHandlerForConvertData: completionHandlerForGET)
-        }
-        
-        // Execute the request
-        task.resume()
-        
-        return task
-    }
-  
     
-    // Assisting functions
- /*
-    // Create JSON string based on parameters dictionary
-    func covertToJson (parameters: [String: AnyObject]) -> String {
-        var jsonBody: String = "{"
-        var newValue: String
-        for (key, value) in parameters {
-            print("Key = \(key)")
-            print("Value = \(value)")
-            if value is Double {
-                newValue = String(_cocoaString: value)
-                let string: String = ("\"\(key)\": \(newValue), ")
-                jsonBody.appendContentsOf(string)
-            }
-            else {
-                newValue = value as! String
-                let string: String = ("\"\(key)\": \"\(newValue)\", ")
-                jsonBody.appendContentsOf(string)
-            }
-        }
-        //Last comma and space removed and brace added
-        jsonBody.remove(at: jsonBody.endIndex.index(before:))
-        jsonBody.remove(at: jsonBody.endIndex.index(before:))
-        jsonBody.append("}")
-        return jsonBody
-    }
-  */
+    // ASSISTING FUNCTIONS
+ 
     
-    // Create a URL from parameters
+    // Create Goolge Vision URL from parameters
     func parseURLFromParameters(parameters: [String:AnyObject], withPathExtension: String? = nil) -> NSURL {
         
         let components = NSURLComponents()
@@ -646,6 +431,7 @@ class GoogleClient : NSObject {
         return components.URL! as NSURL
     }
     
+    // Create Google Translate URL from parameters
     func parseTranslateURLFromParameters(parameters: [String:AnyObject], withPathExtension: String? = nil) -> NSURL {
         
         let components = NSURLComponents()
@@ -663,10 +449,10 @@ class GoogleClient : NSObject {
     
     
     // Parse raw JSON to NS object
-    private func convertDataWithCompletionHandler(data: NSData, completionHandlerForConvertData: (AnyObject, NSError) -> Void) {
+    private func convertDataWithCompletionHandler(data: NSData, completionHandlerForConvertData: (AnyObject?, NSError?) -> Void) {
         
         var parsedResult: AnyObject?
-        let error = NSError(domain: "com.udacity.imageanalyser", code: 0, userInfo: [:])
+        //let error = NSError(domain: "Imageanalyser", code: 0, userInfo: [:])
         
         //Attempt to parse data and report error if failure
         do {
@@ -676,10 +462,10 @@ class GoogleClient : NSObject {
             completionHandlerForConvertData("", NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
         }
         // Return parsed result
-        completionHandlerForConvertData(parsedResult!, error)
+        completionHandlerForConvertData(parsedResult!, nil)
     }
     
-    // Parse raw JSON to NS object
+/*    // Parse raw JSON to NS object
     private func convertStringWithCompletionHandler(json: String, completionHandlerForConvertData: (AnyObject?, NSError?) -> Void) {
 
         var parsedResult: AnyObject?
@@ -698,9 +484,9 @@ class GoogleClient : NSObject {
         let userInfo = [NSLocalizedDescriptionKey : "Could not encode string to data."]
         completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
     }
-
+*/
     
-    
+    // Adjust image size to size accepted by Google Vision API
     func resizeImage(imageSize: CGSize, image: UIImage) -> NSData {
         UIGraphicsBeginImageContext(imageSize)
         image.drawInRect(CGRectMake(0, 0, imageSize.width, imageSize.height))
@@ -738,23 +524,21 @@ class GoogleClient : NSObject {
         return imagedata!
     }
     
-    //func getCityAndCountry(location : CLLocation, result : AnalysisResult, completionHandlerForSession: (success : Bool, error : NSError, result : AnalysisResult)) -> Void {
+
     
-      func getCityAndCountry(location : CLLocation, result : AnalysisResult) {
+    // Using the geoCoder find country and nearest city for landmark and return result
+    func getCityAndCountry(location : CLLocation, result : AnalysisResult, completionHandlerForSession: (Bool, NSError?, AnalysisResult?) -> Void) {
         
-        //var success: Bool
-        //var localError: NSError
         let geoCoder = CLGeocoder()
-        var country = ""
+        //var country = ""
         geoCoder.reverseGeocodeLocation(location) { (placemarks, error) -> Void in
 
             if error == nil {
                 // Place details
                 var placeMark: CLPlacemark!
-                print("Placemark = \(placeMark)")
                 placeMark = placemarks?[0]
                 
-                // Address dictionary
+  /*              // Address dictionary
                 print(placeMark.addressDictionary)
                 
                 // Location name
@@ -766,29 +550,28 @@ class GoogleClient : NSObject {
                 if let street = placeMark.addressDictionary!["Thoroughfare"] as? NSString {
                     print(street)
                 }
-                
-                // City
+                */
+                // Update result with city
                 if let city = placeMark.addressDictionary!["City"] as? String {
                     print(city)
                     result.updateCity(city)
                 }
                 
-                // Zip code
+/*                // Zip code
                 if let zip = placeMark.addressDictionary!["ZIP"] as? NSString {
                     print(zip)
                 }
-                
-                // Country
+                */
+                // Update result with country
                 if let country = placeMark.addressDictionary!["Country"] as? String {
                     print(country)
                     result.updateCountry(country)
                 }
-/*                completionHandlerForSession(true, error, result)
+                completionHandlerForSession(true, nil, result)
             } else {
-                completionHandlerForSession(false, error, result)*/
+                completionHandlerForSession(false, error, nil)
             }
         }
-        return
     }
     
     

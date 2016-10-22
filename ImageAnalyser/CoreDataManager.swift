@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  CoreDataManager.swift
 //  ImageAnalyser
 //
 //  Created by Robert Coffey on 08/10/2016.
@@ -10,7 +10,7 @@
 import Foundation
 import CoreData
 
-//The CoreDataStackManager contains all the code needed to made the Core Data Stack
+//The CoreDataStackManager contains all the code needed to make the Core Data Stack
 
 class CoreDataStackManager {
     
@@ -27,23 +27,22 @@ class CoreDataStackManager {
         struct Static {
             static let instance = CoreDataStackManager()
         }
-        
         return Static.instance!
     }
     
     init?() {
         
-        // Instantiating the application directory property
+        // Instantiate the application directory property
         let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
         self.directoryURL = urls[urls.count-1]
  
-        //Instantiating the Managed Object Model property
+        //Instantiate the Managed Object Model property
         print("Bundle : \(NSBundle.mainBundle().URLForResource(Constants.CDModel.ModelName, withExtension: "momd"))")
         self.modelURL = NSBundle.mainBundle().URLForResource(Constants.CDModel.ModelName, withExtension: "momd")!
 
         self.model = NSManagedObjectModel(contentsOfURL: modelURL)!
         
-        //Instantiating the persistant Store Coordinator and adding SQL Lite DB
+        //Instantiate the persistant Store Coordinator and adding SQL Lite DB
         print("Instantiating Store Coordinator")
         self.coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
         self.dbURL = directoryURL.URLByAppendingPathComponent(Constants.CDModel.SQLFileName)!
@@ -59,7 +58,7 @@ class CoreDataStackManager {
             dict[NSLocalizedDescriptionKey] = "Failed to initialize the application's saved data"
             dict[NSLocalizedFailureReasonErrorKey] = "There was an error creating or loading the application's saved data."
             dict[NSUnderlyingErrorKey] = error
-            error = NSError(domain: "Model", code: 9999, userInfo: dict as! [NSObject : AnyObject])
+            error = NSError(domain: "Model", code: 9999, userInfo: dict as? [NSObject : AnyObject])
             abort()
         } catch {
             fatalError()
@@ -87,7 +86,7 @@ extension CoreDataStackManager  {
     
     
     func save() {
-        // Saves main context synchronosly
+        // Saves main context synchronously
         context.performBlockAndWait(){
             
             if self.context.hasChanges{

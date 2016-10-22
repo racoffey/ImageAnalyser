@@ -51,10 +51,19 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         activityIndicator.hidesWhenStopped = true
         textView.hidden = false
         mapView.hidden = true
+        generalButton.enabled = true
+        textButton.enabled = true
+        landmarkButton.enabled = true
+        faceButton.enabled = true
 
-        // If analaysis has already been performed present the respective, text or map view in case of landmark analysis.
+        // If analaysis has already been performed present the respective text or map view in case of landmark analysis 
+        // and disable analysis buttons.
         // Otherwise inform use to select wanted analysis type.
         if result?.labelText != nil {
+            generalButton.enabled = false
+            textButton.enabled = false
+            landmarkButton.enabled = false
+            faceButton.enabled = false
             if result?.analysisType == "landmark" {
               displayMapView()
             } else {
@@ -69,6 +78,8 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
     }
     
 
+    //ASSISTING FUNCTIONS
+    
     //Present message to user
     func displayError(error: String, debugLabelText: String? = nil) {
         
@@ -87,6 +98,34 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
             self.textView.reloadInputViews()
         })
     }
+    
+
+    // Start animating activity indicator and inform user analysis is underway
+    func animateActivityIndicator(){
+        performUIUpdatesOnMain ({
+            self.activityIndicator.hidden = false
+            self.activityIndicator.startAnimating()
+            self.textView.hidden = false
+            self.textView.text = "Image being analysed..."
+            self.textView.reloadInputViews()
+        })
+    }
+ 
+ 
+    // Remove whitespace from string
+    func removeWhiteSpace(var string : String) -> String {
+        string = string.stringByReplacingOccurrencesOfString(" ", withString: "_")
+        if string.characters.first == "_" {
+            string.removeAtIndex(string.startIndex)
+        }
+        if string.characters.last == "_" {
+            string.removeAtIndex(string.endIndex)
+        }
+        return string
+    }
+    
+    
+    //MAP FUNCTIONS
     
     // Present landmark response to user as pin and annotation including wikipedia link on map
     func displayMapView() {
@@ -119,34 +158,6 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         })
     }
     
-    // Start animating activity indicator and inform user analysis is underway
-    func animateActivityIndicator(){
-        performUIUpdatesOnMain ({
-            self.activityIndicator.hidden = false
-            self.activityIndicator.startAnimating()
-            self.textView.hidden = false
-            self.textView.text = "Image being analysed..."
-            self.textView.reloadInputViews()
-        })
-    }
- 
-    //ASSISTING FUNCTIONS
-    
-    
-    // Remove whitespace from string
-    func removeWhiteSpace(var string : String) -> String {
-        string = string.stringByReplacingOccurrencesOfString(" ", withString: "_")
-        if string.characters.first == "_" {
-            string.removeAtIndex(string.startIndex)
-        }
-        if string.characters.last == "_" {
-            string.removeAtIndex(string.endIndex)
-        }
-        return string
-    }
-    
-    
-    //MAP FUNCTIONS
     
     //Prepare annotation view
     func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
@@ -219,6 +230,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         }
     }
     
+    
     // "Text" analysis selected
     @IBAction func textButtonPressed(sender: AnyObject) {
         animateActivityIndicator()
@@ -235,8 +247,8 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
                 self.displayError(error!.localizedDescription)
             }
         }
-        displayResponse()
     }
+    
     
     // "Landmark" analysis selected
     @IBAction func landmarkButtonPressed(sender: AnyObject) {
@@ -254,8 +266,8 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
                 self.displayError(error!.localizedDescription)
             }
         }
-
     }
+    
     
     // "Face" analysis selected
     @IBAction func faceButtonPressed(sender: AnyObject) {

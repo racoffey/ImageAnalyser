@@ -58,8 +58,8 @@
 		A81007C51D684FEF00DE2962 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A8186C811DA92AB4009CC8F4 /* CoreDataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
 		A8186C8C1DAC0241009CC8F4 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
-		A8186C921DAC0A71009CC8F4 /* AnalysisResult+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AnalysisResult+CoreDataClass.swift"; sourceTree = "<group>"; };
-		A8186C931DAC0A71009CC8F4 /* AnalysisResult+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AnalysisResult+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		A8186C921DAC0A71009CC8F4 /* AnalysisResult+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "AnalysisResult+CoreDataClass.swift"; path = "../AnalysisResult+CoreDataClass.swift"; sourceTree = "<group>"; };
+		A8186C931DAC0A71009CC8F4 /* AnalysisResult+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "AnalysisResult+CoreDataProperties.swift"; path = "../AnalysisResult+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		A8186C961DAC1C0D009CC8F4 /* ResultsHistoryViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultsHistoryViewController.swift; sourceTree = "<group>"; };
 		A8766B431D8C788E00EFC1EB /* AnalysisSelectorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnalysisSelectorView.swift; sourceTree = "<group>"; };
 		A8766B471D8D67CF00EFC1EB /* GCDBlackBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GCDBlackBox.swift; sourceTree = "<group>"; };
@@ -95,8 +95,6 @@
 		A81007941D684FEF00DE2962 = {
 			isa = PBXGroup;
 			children = (
-				A8186C921DAC0A71009CC8F4 /* AnalysisResult+CoreDataClass.swift */,
-				A8186C931DAC0A71009CC8F4 /* AnalysisResult+CoreDataProperties.swift */,
 				A810079F1D684FEF00DE2962 /* ImageAnalyser */,
 				A81007B71D684FEF00DE2962 /* ImageAnalyserTests */,
 				A81007C21D684FEF00DE2962 /* ImageAnalyserUITests */,
@@ -158,6 +156,8 @@
 		A8186C7C1DA8E5BD009CC8F4 /* CoreData */ = {
 			isa = PBXGroup;
 			children = (
+				A8186C921DAC0A71009CC8F4 /* AnalysisResult+CoreDataClass.swift */,
+				A8186C931DAC0A71009CC8F4 /* AnalysisResult+CoreDataProperties.swift */,
 				A8186C811DA92AB4009CC8F4 /* CoreDataManager.swift */,
 				A8186C8B1DAC0241009CC8F4 /* Model.xcdatamodeld */,
 			);

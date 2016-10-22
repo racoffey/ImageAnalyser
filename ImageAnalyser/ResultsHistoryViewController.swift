@@ -188,8 +188,6 @@ class ResultsHistoryViewController: UIViewController, UICollectionViewDataSource
         case .Move:
             // We don't expect items to move in this app.
             break
-        default:
-            break
         }
     }
     
