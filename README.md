@@ -24,4 +24,4 @@ SETUP
 
 App has been converted to Swift 2.3, so is compatible with Xcode8.0 and iOS10.  It can be run stand alone and does not require 3rd party components.
 
-The Google API key has not been included as the app is not commericalised.  If needed the key can be requested from racoffey@gmail.com.
+The Google API key has not been included as the app is not commericalised.  If needed the key can be requested from racoffey@gmail.com, and shall be updated in the Constants.swift file.
