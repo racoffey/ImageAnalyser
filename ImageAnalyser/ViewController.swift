@@ -26,7 +26,20 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     //Outlets
     @IBOutlet weak var selectCameraButton: UIBarButtonItem!
     @IBOutlet weak var selectImageFolderButton: UIBarButtonItem!
+    @IBOutlet weak var messageLabel: UILabel!
     
+    override func viewDidAppear(animated: Bool) {
+        print("ViewDidAppear")
+        if NSUserDefaults.standardUserDefaults().valueForKey("imageAnalyserFirstLaunch") == nil {
+            print("First Launch")
+            messageLabel.text = "Welcome to Image Analyser! \n\n Step 1 Choose an image to analyse from your photo album or camera. \n\n Step 2 Choose one four different analysis types: General, Face, Landmark or Text."
+             NSUserDefaults.standardUserDefaults().setValue(false, forKey: "imageAnalyserFirstLaunch")
+            view.reloadInputViews()
+        } else {
+            print("Not first launch")
+            messageLabel.text = "Select image to analyse"
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
