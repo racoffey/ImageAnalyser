@@ -4,7 +4,7 @@ The Image Analyser app is an experimental app that explores the capabilites of t
 
 The app provides the possibility for a user to perform different types of analyses on an image of their selection and receive various types for information back depending on the type of analysis performed.
 
-The intial view controller provides the user the option to select an image from their photo album or camera.  The user can also choose to see the history of their analysis results.
+The intial view provides the user the option to select an image from their photo album or camera.  The user can also choose to see the history of their analysis results.
 
 When an image has been selected the user is presented with the option to choose from 4 different types of analysis:
 
@@ -17,6 +17,8 @@ When an image has been selected the user is presented with the option to choose 
 4. "Text" returns the textual content of the image. If the language of the textual content is not English it is automatically translated to English using Google's Transation API.
 
 The analysis results are stored and are available as a collection view. Earlier results can be updated with new analyses if wished by the user.
+
+The first time the app is opened the user is presented with basic instructions in the intial view. These are replaced by the simple command - "Select image to analyse", when the app is re-opened.
 
 SETUP
 
