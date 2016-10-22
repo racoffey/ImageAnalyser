@@ -122,32 +122,41 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
     // Present landmark response to user as pin and annotation including wikipedia link on map
     func displayMapView() {
         
-        // Prepare pin annotation and map location
-        let dropPin = MKPointAnnotation()
-        dropPin.coordinate = (result?.coordinate)!
-        let mapLocation = CLLocation(latitude: (result!.latitude), longitude: (result!.longitude))
-        
-        // Create Wikipedia URL link using by appending the landmark name as a search criteria
-        let wikiURL = Constants.WikipediaRequestValues.wikipediaURL + removeWhiteSpace(result!.labelText!)
-        
-        // If landmark country is included in result display it in the annotation title
-        if result?.country != nil {
-            dropPin.title = result!.labelText! + (", \((result?.country)!)")
+        if result?.landmarkLabel != nil {
+            // Prepare pin annotation and map location
+            let dropPin = MKPointAnnotation()
+            dropPin.coordinate = (result?.coordinate)!
+            let mapLocation = CLLocation(latitude: (result!.latitude), longitude: (result!.longitude))
+            
+            // Create Wikipedia URL link using by appending the landmark name as a search criteria
+            let wikiURL = Constants.WikipediaRequestValues.wikipediaURL + removeWhiteSpace(result!.labelText!)
+            
+            // If landmark country is included in result display it in the annotation title
+            if result?.country != nil {
+                dropPin.title = result!.labelText! + (", \((result?.country)!)")
+            } else {
+                dropPin.title = result!.labelText!
+            }
+            
+            // Include Wikipedia link in annotation subtitle
+            dropPin.subtitle = wikiURL
+            
+            //Display map to end user
+            performUIUpdatesOnMain ({
+                self.textView.hidden = true
+                self.mapView.hidden = false
+                self.centerMapOnLocation(mapLocation)
+                self.mapView.addAnnotation(dropPin)
+                self.mapView.selectAnnotation(dropPin, animated: true)
+            })
         } else {
-            dropPin.title = result!.labelText!
+            result?.labelText = "\n Unable to identify landmark"
+            performUIUpdatesOnMain({
+                self.textView.text = self.result?.labelText
+                self.activityIndicator.stopAnimating()
+            })
+
         }
-        
-        // Include Wikipedia link in annotation subtitle
-        dropPin.subtitle = wikiURL
-        
-        //Display map to end user
-        performUIUpdatesOnMain ({
-            self.textView.hidden = true
-            self.mapView.hidden = false
-            self.centerMapOnLocation(mapLocation)
-            self.mapView.addAnnotation(dropPin)
-            self.mapView.selectAnnotation(dropPin, animated: true)
-        })
     }
     
     

@@ -184,8 +184,8 @@ class GoogleClient : NSObject {
         // If text is not English then automatically provide an English translation of the text
         if (response["textAnnotations"]!) != nil {
             
-            //Instantiate string for image text and add heading
-            var imageText = "IMAGE TEXT\n\n"
+            //Instantiate string for image text
+            var imageText = ""
             
             //Extract textAnnotations from response dictionary
             let textAnnotations = response["textAnnotations"] as! [AnyObject]
@@ -207,7 +207,7 @@ class GoogleClient : NSObject {
                         
                         // Update result object with translated text and new Label Text for user display
                         result.updateTranslatedText(textTranslation as! String)
-                        let newLabelText = "\(result.imageText!) \n" + " TRANSLATED TEXT\n\n" + result.translatedText! 
+                        let newLabelText = "IMAGE TEXT \n\n \(result.imageText!) \n" + " TRANSLATED TEXT\n\n" + result.translatedText!
                         result.updateLabelText(newLabelText)
                         completionHandlerForSession(success: true, error: nil, result: result)
                     }
@@ -218,7 +218,7 @@ class GoogleClient : NSObject {
                 }
             } else {
                 // Assign imageText content to display text
-                labelText.appendContentsOf(imageText)
+                labelText.appendContentsOf("IMAGE TEXT \n\n \(imageText)")
                 
                 // Return result
                 completionHandlerForSession(success: true, error: nil, result: result)
