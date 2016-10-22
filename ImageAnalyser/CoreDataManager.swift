@@ -37,13 +37,11 @@ class CoreDataStackManager {
         self.directoryURL = urls[urls.count-1]
  
         //Instantiate the Managed Object Model property
-        print("Bundle : \(NSBundle.mainBundle().URLForResource(Constants.CDModel.ModelName, withExtension: "momd"))")
         self.modelURL = NSBundle.mainBundle().URLForResource(Constants.CDModel.ModelName, withExtension: "momd")!
 
         self.model = NSManagedObjectModel(contentsOfURL: modelURL)!
         
         //Instantiate the persistant Store Coordinator and adding SQL Lite DB
-        print("Instantiating Store Coordinator")
         self.coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
         self.dbURL = directoryURL.URLByAppendingPathComponent(Constants.CDModel.SQLFileName)!
         var error: NSError? = nil
@@ -65,7 +63,6 @@ class CoreDataStackManager {
         }
         
         //Instantiating the Managed Object Context property and connecting it to the coordinator
-        print("Instantiating MOC ")
         context = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
         context.persistentStoreCoordinator = coordinator
         

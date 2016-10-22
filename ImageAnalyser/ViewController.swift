@@ -97,7 +97,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     // Pass the result object to the destination AnalysisViewController
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        print("Reached prepare for Segue")
         if segue.identifier == "segueToAnalysisSelectorView" {
             let destVC = segue.destinationViewController as! AnalysisSelectorViewController
             destVC.result = result
@@ -121,6 +120,5 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     @IBAction func selectCameraButton(sender: AnyObject) {
         selectImage(UIImagePickerControllerSourceType.Camera)
     }
-
 }
 

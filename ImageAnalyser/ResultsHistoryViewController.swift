@@ -38,6 +38,7 @@ class ResultsHistoryViewController: UIViewController, UICollectionViewDataSource
         
         // Start the fetched results controller
         fetchResults()
+        collectionView.reloadData()
         
         // If there are no AnalysisResults stored display message to user
         let count = (fetchedResultsController.fetchedObjects?.count)! as Int
@@ -220,7 +221,6 @@ class ResultsHistoryViewController: UIViewController, UICollectionViewDataSource
     
     //Present message to user using Alert Controller
     func displayError(error: String) {
-        print(error)
         
         // Show error to user using Alert Controller
         let alert = UIAlertController(title: "Information", message: error, preferredStyle: UIAlertControllerStyle.Alert)

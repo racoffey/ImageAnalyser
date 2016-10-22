@@ -147,6 +147,36 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="imq-hQ-VcB">
+                                <frame key="frameInset" minY="333" width="375"/>
+                            </activityIndicatorView>
+                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="UDa-Jy-mwq">
+                                <items>
+                                    <barButtonItem title="General" id="G4T-eG-0Hp">
+                                        <connections>
+                                            <action selector="generalButtonPressed:" destination="rug-xe-kUf" id="Mz4-PN-iqk"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="MpM-Oo-zpg"/>
+                                    <barButtonItem title="Face" id="b8L-8h-wM4">
+                                        <connections>
+                                            <action selector="faceButtonPressed:" destination="rug-xe-kUf" id="jMe-aJ-sFy"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="XXa-b2-tdz"/>
+                                    <barButtonItem title="Landmark" id="UG6-5Q-YmR">
+                                        <connections>
+                                            <action selector="landmarkButtonPressed:" destination="rug-xe-kUf" id="niA-qg-jVZ"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="zX7-hh-tGa"/>
+                                    <barButtonItem title="Text" id="J7o-WO-i7c">
+                                        <connections>
+                                            <action selector="textButtonPressed:" destination="rug-xe-kUf" id="i3y-iA-tyW"/>
+                                        </connections>
+                                    </barButtonItem>
+                                </items>
+                            </toolbar>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="Gqt-4A-SiV">
                                 <subviews>
                                     <textView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" usesAttributedText="YES" translatesAutoresizingMaskIntoConstraints="NO" id="PIf-LK-fdu">
@@ -181,49 +211,17 @@
                                     <constraint firstAttribute="trailing" secondItem="33C-Gf-Jb3" secondAttribute="trailing" id="x2a-Ni-CXH"/>
                                 </constraints>
                             </stackView>
-                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="imq-hQ-VcB">
-                                <frame key="frameInset" minY="333" width="375" height="20"/>
-                            </activityIndicatorView>
-                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="UDa-Jy-mwq">
-                                <frame key="frameInset" minY="479" width="375" height="44"/>
-                                <items>
-                                    <barButtonItem title="General" id="G4T-eG-0Hp">
-                                        <connections>
-                                            <action selector="generalButtonPressed:" destination="rug-xe-kUf" id="Mz4-PN-iqk"/>
-                                        </connections>
-                                    </barButtonItem>
-                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="MpM-Oo-zpg"/>
-                                    <barButtonItem title="Face" id="b8L-8h-wM4">
-                                        <connections>
-                                            <action selector="faceButtonPressed:" destination="rug-xe-kUf" id="jMe-aJ-sFy"/>
-                                        </connections>
-                                    </barButtonItem>
-                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="XXa-b2-tdz"/>
-                                    <barButtonItem title="Landmark" id="UG6-5Q-YmR">
-                                        <connections>
-                                            <action selector="landmarkButtonPressed:" destination="rug-xe-kUf" id="niA-qg-jVZ"/>
-                                        </connections>
-                                    </barButtonItem>
-                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="zX7-hh-tGa"/>
-                                    <barButtonItem title="Text" id="J7o-WO-i7c">
-                                        <connections>
-                                            <action selector="textButtonPressed:" destination="rug-xe-kUf" id="i3y-iA-tyW"/>
-                                        </connections>
-                                    </barButtonItem>
-                                </items>
-                            </toolbar>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="trailing" secondItem="UDa-Jy-mwq" secondAttribute="trailing" id="2SB-uF-j7z"/>
-                            <constraint firstItem="imq-hQ-VcB" firstAttribute="top" secondItem="aoL-vr-CI2" secondAttribute="bottom" constant="120" id="ItF-6M-5Ry"/>
                             <constraint firstAttribute="trailing" secondItem="Gqt-4A-SiV" secondAttribute="trailing" id="JFh-dx-IhH"/>
                             <constraint firstItem="Gqt-4A-SiV" firstAttribute="top" secondItem="aoL-vr-CI2" secondAttribute="bottom" id="Lpe-3n-bpN"/>
                             <constraint firstItem="zdd-2u-uPw" firstAttribute="top" secondItem="aoL-vr-CI2" secondAttribute="bottom" constant="250" id="PlD-de-m8N"/>
                             <constraint firstItem="UDa-Jy-mwq" firstAttribute="leading" secondItem="Zlf-ao-jSU" secondAttribute="leading" id="bLJ-I2-0wh"/>
-                            <constraint firstItem="imq-hQ-VcB" firstAttribute="leading" secondItem="Zlf-ao-jSU" secondAttribute="leading" id="bZT-Vd-fhc"/>
-                            <constraint firstAttribute="trailing" secondItem="imq-hQ-VcB" secondAttribute="trailing" id="cth-Ew-jCS"/>
                             <constraint firstItem="8Fb-Vk-7ab" firstAttribute="top" secondItem="UDa-Jy-mwq" secondAttribute="bottom" id="fMP-Bx-jvk"/>
+                            <constraint firstItem="imq-hQ-VcB" firstAttribute="centerX" secondItem="Zlf-ao-jSU" secondAttribute="centerX" id="fSe-Be-FmP"/>
+                            <constraint firstItem="imq-hQ-VcB" firstAttribute="top" secondItem="aoL-vr-CI2" secondAttribute="bottom" constant="100" id="lyx-DW-psB"/>
                             <constraint firstItem="UDa-Jy-mwq" firstAttribute="top" secondItem="Gqt-4A-SiV" secondAttribute="bottom" id="mUk-dh-Ix8"/>
                             <constraint firstItem="Gqt-4A-SiV" firstAttribute="leading" secondItem="Zlf-ao-jSU" secondAttribute="leading" id="yo9-sH-sWg"/>
                         </constraints>

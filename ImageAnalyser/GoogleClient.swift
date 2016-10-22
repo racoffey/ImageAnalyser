@@ -268,7 +268,7 @@ class GoogleClient : NSObject {
             let faceAnnotations = response["faceAnnotations"] as! [AnyObject]
             let dict = faceAnnotations[0]
             let angerLikelihood = dict["angerLikelihood"]!
-            faceLabels.appendContentsOf(" \n\n EMOTIONS \n\n Anger: \(angerLikelihood!)")
+            faceLabels.appendContentsOf(" Anger: \(angerLikelihood!)")
             let joyLikelihood = dict["joyLikelihood"]!
             faceLabels.appendContentsOf(" \n Joy: \(joyLikelihood!)")
             let sorrowLikelihood = dict["sorrowLikelihood"]!
@@ -356,8 +356,7 @@ class GoogleClient : NSObject {
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue(NSBundle.mainBundle().bundleIdentifier ?? "",forHTTPHeaderField: "X-Ios-Bundle-Identifier" )
         request.HTTPBody = try! NSJSONSerialization.dataWithJSONObject(jsonBody, options: [])
-        print("Request : \(request)")
-        print("All HTTP header fields : \(request.allHTTPHeaderFields)")
+
         // Prepare request task
         let task = session.dataTaskWithRequest(request as NSURLRequest) { (data, response, error) in
             
@@ -368,17 +367,13 @@ class GoogleClient : NSObject {
             
             // GUARD: Was there an error?
             guard (error == nil) else {
-                sendError("The POST method failed. \(error)")
+                sendError("The POST method failed. \((error?.localizedDescription)!)")
                 return
             }
             
             // GUARD: Did we get a successful 2XX response?
             guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode   where statusCode >= 200 && statusCode <= 299 else {
                 sendError("Your POST request returned a status code other than 2xx!")
-                print("Status code : \((response as? NSHTTPURLResponse)?.statusCode)")
-                print("Response : \(response)")
-                print("Error : \(error)")
-                print("Data : \(data)")
                 return
             }
             
@@ -495,13 +490,11 @@ class GoogleClient : NSObject {
                 
                 // Update result with city
                 if let city = placeMark.addressDictionary!["City"] as? String {
-                    print(city)
                     result.updateCity(city)
                 }
                 
                 // Update result with country
                 if let country = placeMark.addressDictionary!["Country"] as? String {
-                    print(country)
                     result.updateCountry(country)
                 }
                 completionHandlerForSession(true, nil, result)

@@ -51,26 +51,17 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         activityIndicator.hidesWhenStopped = true
         textView.hidden = false
         mapView.hidden = true
-        generalButton.enabled = true
-        textButton.enabled = true
-        landmarkButton.enabled = true
-        faceButton.enabled = true
 
-        // If analaysis has already been performed present the respective text or map view in case of landmark analysis 
-        // and disable analysis buttons.
-        // Otherwise inform use to select wanted analysis type.
+        // If analaysis has already been performed present the respective text or map view in case of landmark analysis.
+        // Otherwise inform user to select wanted analysis type.
         if result?.labelText != nil {
-            generalButton.enabled = false
-            textButton.enabled = false
-            landmarkButton.enabled = false
-            faceButton.enabled = false
             if result?.analysisType == "landmark" {
               displayMapView()
             } else {
             textView.text = result?.labelText
             }
         } else {
-            textView.text = "Select analysis type"
+            textView.text = "\n Select analysis type"
         }
 
         // Assign map view delegate to this class
@@ -89,6 +80,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
         self.presentViewController(alert, animated: true, completion: nil)
     }
     
+    
     // Present textual analysis response to the user
     func displayResponse(){
         performUIUpdatesOnMain ({
@@ -106,7 +98,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
             self.activityIndicator.hidden = false
             self.activityIndicator.startAnimating()
             self.textView.hidden = false
-            self.textView.text = "Image being analysed..."
+            self.textView.text = "\n Image being analysed..."
             self.textView.reloadInputViews()
         })
     }
