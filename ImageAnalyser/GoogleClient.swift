@@ -106,10 +106,10 @@ class GoogleClient : NSObject {
 
         // Execute HTTP POST transaction
         taskForPOSTMethod(method, parameters: parameters, jsonBody: jsonBody as [String : AnyObject], type: "vision") { (results, error) in
-            
+
             // Handle error case
-            if error!.code == 1 {
-                completionHandlerForSession(success: true, error: error!, result: result)
+            if error != nil {
+                completionHandlerForSession(success: false, error: error, result: nil)
             } else {
                 
                 //Extract the annotations from the JSON response
@@ -202,7 +202,7 @@ class GoogleClient : NSObject {
             if language != "en" {
 
                 // Request transation to English and return result when translation has been received
-                requestTranslation(result.imageText!, language: language) { (success, error, textTranslation) in
+                requestTranslation(result.imageText!, sourceLanguage: language) { (success, error, textTranslation) in
                     if success{
                         
                         // Update result object with translated text and new Label Text for user display
@@ -294,45 +294,36 @@ class GoogleClient : NSObject {
     }
 
     
-    
-    func requestTranslation(text: String, language: String, completionHandlerForSession: (Bool, NSError?, AnyObject?) -> Void) {
-        print("Reached request translation")
-        //let imageData = base64EncodeImage(image)
-        //var localError = NSError(domain: "com.udacity.imageanalyser", code: 0, userInfo: [:])
-        var jsonBody : [String : AnyObject] = [:]
-        let target = "en"
-        var responses = [""]
+    // Request translation of text using Google Translation API
+    func requestTranslation(text: String, sourceLanguage: String, completionHandlerForSession: (Bool, NSError?, AnyObject?) -> Void) {
         
-        // Build our API request
+        // Initiate request and response parameters
+        let jsonBody : [String : AnyObject] = [:]
+     //   var responses = [""]
+        
+        // Build the API request
         let method = ""
         let parameters : [String: AnyObject] = [
             Constants.GoogleRequestKeys.ApiKey : Constants.GoogleRequestValues.ApiKey,
-            Constants.GoogleRequestKeys.Source : language,
-            Constants.GoogleRequestKeys.Target : target,
+            Constants.GoogleRequestKeys.Source : sourceLanguage,
+            Constants.GoogleRequestKeys.TargetLanguage : Constants.GoogleRequestValues.EnglishLanguage,
             Constants.GoogleRequestKeys.Text : text,
              ]
         
-        taskForPOSTMethod(method, parameters: parameters, jsonBody: jsonBody as [String : AnyObject], type: "translate") { (results, error) in
+        taskForPOSTMethod(method, parameters: parameters, jsonBody: jsonBody, type: "translate") { (results, error) in
             
             // Handle error case
-            if error!.code == 1 {
+            if error != nil {
                 completionHandlerForSession(false, error, nil)
-                //let resultsDict = error as! [String : AnyObject]
-                //print("Error: \(error)")
-            } else {
-                //Put results into a data object, extract result information into Annotations object which is returned
-                
-                let resultsDict = results as! [String : AnyObject]
-                print("ResultsDict: \(resultsDict)")
-                let data = resultsDict["data"]! as AnyObject
-                print("Data: \(data)")
-                let translations = data["translations"]!! as AnyObject
-                print("Translations: \(translations)")
-                let translatedTextDict = translations[0]! as AnyObject
-                print("TranslatedTextDict: \(translatedTextDict)")
-                let translatedText = translatedTextDict["translatedText"]! as! String
-                print("TranslatedText: \(translatedText)")
 
+            } else {
+                
+                // Extract result information into translatedText String which is returned
+                let resultsDict = results as! [String : AnyObject]
+                let data = resultsDict["data"]! as AnyObject
+                let translations = data["translations"]!! as AnyObject
+                let translatedTextDict = translations[0]! as AnyObject
+                let translatedText = translatedTextDict["translatedText"]! as! String
         
                 // Successfully complete session
                 completionHandlerForSession(true, nil, translatedText)
@@ -410,8 +401,6 @@ class GoogleClient : NSObject {
     
 
     
- 
-    
     // ASSISTING FUNCTIONS
  
     
@@ -465,26 +454,6 @@ class GoogleClient : NSObject {
         completionHandlerForConvertData(parsedResult!, nil)
     }
     
-/*    // Parse raw JSON to NS object
-    private func convertStringWithCompletionHandler(json: String, completionHandlerForConvertData: (AnyObject?, NSError?) -> Void) {
-
-        var parsedResult: AnyObject?
-        
-        if let data = json.dataUsingEncoding(NSUTF8StringEncoding) {
-            //Attempt to parse data and report error if failure
-            do {
-                parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .MutableContainers)
-            } catch {
-                let userInfo = [NSLocalizedDescriptionKey : "Could not parse the data as JSON"]
-                completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
-            }
-            // Return parsed result
-            completionHandlerForConvertData(parsedResult, nil)
-        }
-        let userInfo = [NSLocalizedDescriptionKey : "Could not encode string to data."]
-        completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
-    }
-*/
     
     // Adjust image size to size accepted by Google Vision API
     func resizeImage(imageSize: CGSize, image: UIImage) -> NSData {
@@ -496,24 +465,10 @@ class GoogleClient : NSObject {
         return resizedImage! as NSData
     }
     
-    func base64EncodeImage(image: UIImage) -> String {
-        print("Image = \(image)")
-        var imagedata = UIImagePNGRepresentation(image)
-        //var imagedata = UIImageJPEGRepresentation(image, 1)
-        
-        // Resize the image if it exceeds the 2MB API limit
-        if (imagedata!.length > 2097152) {
-            let oldSize: CGSize = image.size
-            let newSize: CGSize = CGSizeMake(800, oldSize.height / oldSize.width * 800)
-            imagedata = resizeImage(newSize, image: image) as NSData
-        }
-        
-        return imagedata!.base64EncodedStringWithOptions(.EncodingEndLineWithCarriageReturn)
-    }
-    
+
+    // Encode image to NSData which can be stored in Core Data and resize to meet Google API limit
     func base64EncodeImageToNSData(image: UIImage) -> NSData {
         var imagedata = UIImagePNGRepresentation(image)
-        //var imagedata = UIImageJPEGRepresentation(image, 1)
         
         // Resize the image if it exceeds the 2MB API limit
         if (imagedata!.length > 2097152) {
@@ -530,7 +485,7 @@ class GoogleClient : NSObject {
     func getCityAndCountry(location : CLLocation, result : AnalysisResult, completionHandlerForSession: (Bool, NSError?, AnalysisResult?) -> Void) {
         
         let geoCoder = CLGeocoder()
-        //var country = ""
+
         geoCoder.reverseGeocodeLocation(location) { (placemarks, error) -> Void in
 
             if error == nil {
@@ -538,30 +493,12 @@ class GoogleClient : NSObject {
                 var placeMark: CLPlacemark!
                 placeMark = placemarks?[0]
                 
-  /*              // Address dictionary
-                print(placeMark.addressDictionary)
-                
-                // Location name
-                if let locationName = placeMark.addressDictionary!["Name"] as? NSString {
-                    print(locationName)
-                }
-                
-                // Street address
-                if let street = placeMark.addressDictionary!["Thoroughfare"] as? NSString {
-                    print(street)
-                }
-                */
                 // Update result with city
                 if let city = placeMark.addressDictionary!["City"] as? String {
                     print(city)
                     result.updateCity(city)
                 }
                 
-/*                // Zip code
-                if let zip = placeMark.addressDictionary!["ZIP"] as? NSString {
-                    print(zip)
-                }
-                */
                 // Update result with country
                 if let country = placeMark.addressDictionary!["Country"] as? String {
                     print(country)
@@ -574,30 +511,6 @@ class GoogleClient : NSObject {
         }
     }
     
-    
- /*   func convertStringToDictionary(json: String) -> [String: AnyObject]? {
-        let newJSON : String?
-        if let data = json.dataUsingEncoding(NSUTF8StringEncoding) {
-            var error: NSError?
-            do {
-                try newJSON = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions()) as? [String: AnyObject]
-            } catch  {
-                print("error when trying to serialize JSON data")
-            }
-            
-            try {
-                newJSON = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions(), error: &error) as? [String: AnyObject]
-            } catch {
-                
-            }
-            if let error = error {
-                print(error)
-            }
-            return json
-        }
-        return nil
-    }
-    */
     
     // Shared Instance
     

@@ -15,10 +15,6 @@ import MapKit
 
 struct Constants {
     
-    // General constants
-    struct General {
-        static let maxPages : UInt32 = 100
-    }
     
     // Core data model constants
     struct CDModel {
@@ -30,9 +26,12 @@ struct Constants {
     // Google URL API parameters
     struct Google {
         static let ApiScheme = "https"
+        
+        // For Vision API
         static let ApiHost = "vision.googleapis.com"
         static let ApiPath = "/v1/images:annotate"
         
+        // For Translate API
         static let ApiHostTranslate = "www.googleapis.com"
         static let ApiPathTranlate = "/language/translate/v2"
     }
@@ -44,52 +43,26 @@ struct Constants {
         static let DataFormat = "format"
         static let BundleIdentifier = "X-Ios-Bundle-Identifier"
         static let Source = "source"
-        static let Target = "target"
+        static let TargetLanguage = "target"
         static let Text = "q"
-        
-        static let NoJsonCallBack = "nojsoncallback"
-        static let Extras = "extras"
-        static let SafeSearch = "safe_search"
-        static let PerPage = "per_page"
-        static let BoundingBox = "bbox"
-        static let Method = "method"
-        static let Latitude = "lat"
-        static let Longitude = "lon"
-        static let Radius = "radius"
-        static let Page = "page"
+        static let Language = "language"
     }
+    
     
     // Google request values
     struct GoogleRequestValues {
-        static let ApiKey = "Google API here"
+        static let ApiKey = " Google API goes here!!! "
         static let DataFormat = "json"
         static let BundleIdentifer = ""
-        
-        static let NoJsonCallBack = "1"
-        static let Extras = "url_m,date_taken"
-        static let SafeSearch = "1"
-        static let PerPage = "12"
-        static let Method = "flickr.photos.search"
+        static let EnglishLanguage = "en"
     }
+    
     
     //Wikipedia request values
     struct WikipediaRequestValues {
         static let wikipediaURL = "https://en.wikipedia.org/wiki/"
     }
     
-    
-    // Flickr Response Keys
-    struct FlickrResponseKeys {
-        static let StatusCode = "status"
-        static let ErrorMessage = "error"
-        static let Results = "results"
-        static let PhotoId = "id"
-        static let Owner = "owner"
-        static let Secret = "secret"
-        static let DateTaken = "date_taken"
-        static let Farm = "farm"
-        static let Server = "server"
-    }
     
     // Map attributes
     struct Map {
