@@ -373,7 +373,8 @@ class GoogleClient : NSObject {
             
             // GUARD: Did we get a successful 2XX response?
             guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode   where statusCode >= 200 && statusCode <= 299 else {
-                sendError("Your POST request returned a status code other than 2xx!")
+                let statusCode = (response as? NSHTTPURLResponse)?.statusCode
+                sendError("Your POST request failed. An erroneous status code was returned: \(statusCode!)")
                 return
             }
             

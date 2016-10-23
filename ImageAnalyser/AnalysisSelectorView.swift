@@ -70,16 +70,7 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
     
 
     //ASSISTING FUNCTIONS
-    
-    //Present message to user
-    func displayError(error: String, debugLabelText: String? = nil) {
-        
-        // Show error to user using Alert Controller
-        let alert = UIAlertController(title: "Information", message: error, preferredStyle: UIAlertControllerStyle.Alert)
-        alert.addAction(UIAlertAction(title: "Click", style: UIAlertActionStyle.Default, handler: nil ))
-        self.presentViewController(alert, animated: true, completion: nil)
-    }
-    
+
     
     // Present textual analysis response to the user
     func displayResponse(){
@@ -114,6 +105,30 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
             string.removeAtIndex(string.endIndex)
         }
         return string
+    }
+    
+    private func requestImageAnalysis(type: String) {
+        animateActivityIndicator()
+        
+        //Store analysis type
+        result?.updateAnalysisType(type)
+        
+        //Initiate analysis of the image and present result
+        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
+            if success {
+                self.result = result
+                
+                // If landmark analysis has been performed so the result as a mapView otherwise show in textView
+                if type == "landmark" {
+                    self.displayMapView()
+                } else {
+                    self.displayResponse()
+                }
+            } else {
+                self.activityIndicator.stopAnimating()
+                self.displayError(error!.localizedDescription)
+            }
+        }
     }
     
     
@@ -211,48 +226,33 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
     }
     
     
+    
+    
     //ACTIONS
     
     // "General" analysis selected
     @IBAction func generalButtonPressed(sender: AnyObject) {
-        animateActivityIndicator()
         
-        //Store analysis type
-        result?.updateAnalysisType("general")
-        
-        //Initiate analysis of the image and present result
-        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
-            if success {
-                self.result = result
-                self.displayResponse()
-            } else {
-                self.displayError(error!.localizedDescription)
-            }
-        }
+        //Request General analysis of the image using
+        requestImageAnalysis("general")
     }
     
     
     // "Text" analysis selected
     @IBAction func textButtonPressed(sender: AnyObject) {
-        animateActivityIndicator()
         
-         //Store analysis type
-        result?.updateAnalysisType("text")
-        
-        //Initiate analysis of the image and present result
-        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
-            if success {
-                self.result = result
-                self.displayResponse()
-            } else {
-                self.displayError(error!.localizedDescription)
-            }
-        }
+        //Request Text analysis of the image using
+        requestImageAnalysis("text")
     }
     
     
     // "Landmark" analysis selected
     @IBAction func landmarkButtonPressed(sender: AnyObject) {
+        
+        //Request Landmark analysis of the image using
+        requestImageAnalysis("landmark")
+      
+        /*
         animateActivityIndicator()
 
         //Store analysis type
@@ -264,28 +264,17 @@ class AnalysisSelectorViewController: UIViewController, MKMapViewDelegate, UIGes
                 self.result = result
                 self.displayMapView()
             } else {
+                self.activityIndicator.stopAnimating()
                 self.displayError(error!.localizedDescription)
             }
-        }
+        }*/
     }
     
     
     // "Face" analysis selected
     @IBAction func faceButtonPressed(sender: AnyObject) {
-        animateActivityIndicator()
-
-        //Store analysis type
-        result?.updateAnalysisType("face")
-        
-        //Initiate analysis of the image and present result
-        GoogleClient.sharedInstance().requestImageAnalysis(result!) { (success, error, result) in
-            if success {
-                self.result = result
-                self.displayResponse()
-            } else {
-                self.displayError(error!.localizedDescription)
-            }
-        }
+        //Request Face analysis of the image using
+        requestImageAnalysis("face")
     }
 }
 

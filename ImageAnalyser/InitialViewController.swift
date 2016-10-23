@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  InitialViewController.swift
 //  ImageAnalyser
 //
 //  Created by Robert Coffey on 20/08/2016.
@@ -12,7 +12,7 @@ import CoreData
 // Initial view controller presented to user when opening the app.  User is offered to select an image for analysis. 
 // Camera or Photo Album, as well as, History can also be selected.
 
-class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, NSFetchedResultsControllerDelegate {
+class InitialViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, NSFetchedResultsControllerDelegate {
     
     //Instantiate AnalysisResult object
     var result : AnalysisResult? = nil
@@ -113,14 +113,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
     }
     
-    //Present message to user using UIAlertController
-    func displayError(error: String, debugLabelText: String? = nil) {
-        
-        let alert = UIAlertController(title: "Information", message: error, preferredStyle: UIAlertControllerStyle.Alert)
-        alert.addAction(UIAlertAction(title: "Click", style: UIAlertActionStyle.Default, handler: nil ))
-        self.presentViewController(alert, animated: true, completion: nil)
-    }
-
     // Action when ImageFolder Button selected
     @IBAction func selectImageFolderButton(sender: AnyObject) {
         selectImage(UIImagePickerControllerSourceType.PhotoLibrary)

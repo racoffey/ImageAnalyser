@@ -79,7 +79,7 @@ class ResultsHistoryViewController: UIViewController, UICollectionViewDataSource
             error = error1
         }
         if let error = error {
-            displayError("Error performing fetch of Analysis Results: \(error.localizedDescription)")
+                displayError("Error performing fetch of Analysis Results: \(error.localizedDescription)")
         }
     }
     
@@ -216,17 +216,4 @@ class ResultsHistoryViewController: UIViewController, UICollectionViewDataSource
             }, completion: nil)
         
     }
-    
-    // ASSISTING FUNCTIONS
-    
-    //Present message to user using Alert Controller
-    func displayError(error: String) {
-        
-        // Show error to user using Alert Controller
-        let alert = UIAlertController(title: "Information", message: error, preferredStyle: UIAlertControllerStyle.Alert)
-        alert.addAction(UIAlertAction(title: "Click", style: UIAlertActionStyle.Default, handler: nil ))
-        self.presentViewController(alert, animated: true, completion: nil)
-    }
-    
-
 }
